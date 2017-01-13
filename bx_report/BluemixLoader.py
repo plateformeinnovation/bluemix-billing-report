@@ -10,7 +10,7 @@ import psycopg2
 
 class BluemixLoader(object):
     def __init__(self, db_host, db_port, db_user, db_password, db_name,
-                 bx_login, bx_pw, schema='public', billing_table='billing',
+                 bx_login, bx_pw, schema, billing_table,
                  api_uk="https://api.eu-gb.bluemix.net",
                  api_us="https://api.ng.bluemix.net",
                  api_au="https://api.au-syd.bluemix.net",
@@ -94,8 +94,8 @@ class BluemixLoader(object):
         else:
             raise ValueError("api should be: uk, us, or au.")
             sys.exit(1)
-        command_cf = "cf login -a %s -u %s -p %s -o %s -s %s" \
-                     % (region, self.bx_login, self.bx_password, organization, space)
+        command_cf = 'cf login -a {} -u {} -p {} -o {} -s {}'.format(
+            region, self.bx_login, self.bx_password, organization, space)
         os.system(command_cf)
 
     def __load_current_region(self, beginning_date):
