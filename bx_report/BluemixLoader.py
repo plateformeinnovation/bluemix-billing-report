@@ -78,7 +78,6 @@ class BluemixLoader(object):
         self.logger.debug('Connected to au')
         self.__load_current_region(starting_date)
 
-        self.conn.commit()
         self.conn.close()
 
     def __CFLogin(self, region, organization="moodpeek", space="dev"):
@@ -114,6 +113,7 @@ class BluemixLoader(object):
             while (report_date >= beginning_date):
                 report_date_str = self.__format_date(report_date)
                 org_list = self.__get_organization_list(report_date_str)
+                self.logger.debug(str(org_list))
                 for org in org_list:
                     bill_records = self.__retrieve_records(org, report_date_str)
                     if bill_records:
@@ -152,6 +152,7 @@ class BluemixLoader(object):
             returnCode = childProcess.poll()
             if returnCode == 0:
                 json_str = out
+        self.logger.debug(json_str)
         json_data = json.loads(json_str)
         org_list = list()
         if json_data["organizations"]:
@@ -214,6 +215,7 @@ class BluemixLoader(object):
             """ % (self.schema, self.billing_table, applications,
                    containers, services, region, org, space, date)
         self.cursor.execute(UPDATE_STATEMENT)
+        self.conn.commit()
 
     def __insert_record(self, region, org, space, date, applications, containers, services):
         INSERT_STATEMENT = """
@@ -223,6 +225,7 @@ class BluemixLoader(object):
             """ % (self.schema, self.billing_table,
                    region, org, space, date, applications, containers, services)
         self.cursor.execute(INSERT_STATEMENT)
+        self.conn.commit()
 
     def __format_date(self, current_date):
         return str(current_date.year) + "-" + (
