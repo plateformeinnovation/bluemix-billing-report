@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Bluemix reporting login screen</title>
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .form .message {
+            margin: 15px 0 0;
+            color: #b3b3b3;
+            font-size: 12px;
+        }
+        .form .message a {
+            color:  #fdfefe;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+<div class="wrapper">
+    <div class="container">
+        <h1>OPEN</h1>
+        <h2>Bluemix Reporting</h2>
+        <form action="login" method="POST" class="form">
+            <input type="text" name="email" placeholder="Username">
+            <input type="password" name="pw" placeholder="Password">
+            <button type="submit" id="login-button" name="submit">Login</button>
+            <p class="message"><a href="#">Forgot your password?</a></p>
+        </form>
+    </div>
+    <ul class="bg-bubbles">
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+    </ul>
+</div>
+</body>
+</html>

@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>User report</title>
+        <link rel=stylesheet type=text/css href="{{ url_for('static', filename='bootstrap.css') }}">
+        <style>
+            h1 {
+                font-family: Verdana;
+                font-size: 180%;
+                color: #024457;
+                margin-top: 15px;
+            }
+            h1 span {
+              color: #167F92;
+            }
+            h2 {
+            color:  #f0f3f4;
+            font-family: Tahoma, Geneva, sans-serif;
+            font-size: 130%;
+            border-style: solid;
+            border-color:  #1a5276;
+            background-color:  #1a5276;
+            margin-top: 25px;
+            margin-bottom: 17px;
+            border-radius: 6px;
+            }
+            h3 {
+            color: #424949;
+            font-family: courier;
+            font-size: 130%;
+            }
+            a.pos_logout {
+            position: absolute;
+            right: 180px;
+            }
+            div.pos_summary {
+            position: relative;
+            left: 220px;
+            }
+            .btn-purple0 {
+            color: #fff;
+            background-color: #af7ac5;
+            border-color:  #af7ac5;
+            }
+            .btn-purple1 {
+            color: #fff;
+            background-color: #9b59b6;
+            border-color: #9b59b6;
+            }
+            .responstable {
+              margin: 1em 0;
+              width: 100%;
+              overflow: hidden;
+              background: #FFF;
+              color: #024457;
+              border-radius: 10px;
+              border: 1px solid #167F92;
+            }
+            .responstable tr {
+              border: 1px solid #D9E4E6;
+            }
+            .responstable tr:nth-child(odd) {
+              background-color: #EAF3F3;
+            }
+            .responstable th {
+              display: none;
+              border: 1px solid #FFF;
+              background-color: #167F92;
+              color: #FFF;
+              padding: 1em;
+            }
+            .responstable th:first-child {
+              display: table-cell;
+              text-align: center;
+            }
+            .responstable th:nth-child(2) {
+              display: table-cell;
+            }
+            .responstable th:nth-child(2) span {
+              display: none;
+            }
+            .responstable th:nth-child(2):after {
+              content: attr(data-th);
+            }
+            @media (min-width: 480px) {
+              .responstable th:nth-child(2) span {
+                display: block;
+              }
+              .responstable th:nth-child(2):after {
+                display: none;
+              }
+            }
+            .responstable td {
+              display: block;
+              word-wrap: break-word;
+              max-width: 7em;
+            }
+            .responstable td:first-child {
+              display: table-cell;
+              text-align: center;
+              border-right: 1px solid #D9E4E6;
+            }
+            @media (min-width: 480px) {
+              .responstable td {
+                border: 1px solid #D9E4E6;
+              }
+            }
+            .responstable th, .responstable td {
+              text-align: left;
+              margin: .5em 1em;
+            }
+            @media (min-width: 480px) {
+              .responstable th, .responstable td {
+                display: table-cell;
+                padding: 1em;
+              }
+            }
+            body {
+              padding: 0 2em;
+              font-family: Arial, sans-serif;
+              color: #024457;
+              background: #f2f2f2;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="wrapper">
+            <div class="container">
+                {% if not su %}
+
+                    {% if flag == "rt" %}
+                    <h1>Consumption details {{current_date}}</h1>
+                    {% elif flag == "history" %}
+                    <h1>Total Consumption details</h1>
+                    {% endif %}
+                    {% if flag == "rt" %}
+                    <a href="{{ url_for('report_user_rt', date_str='previous') }}" class="btn btn-info" role="button">Last month</a>
+                    <a href="{{ url_for('report_user_rt', date_str='next') }}" class="btn btn-info" role="button">Next month</a>
+                    <a href="{{ url_for('report_user_history') }}" class="btn btn-primary" role="button">Total</a>
+                    {% elif flag == "history" %}
+                    <a href="{{ url_for('report_user_rt', date_str='current') }}" class="btn btn-info" role="button">Return</a>
+                    {% endif %}
+                    <a href="{{ url_for('logout') }}" class="btn btn-warning pos_logout" role="button">logout</a>
+                    {{content|safe}}
+
+                {% else %}
+
+                    {% if flag == "rt" %}
+                        {% if summary %}
+                        <h1>Consumption summary {{current_date}}</h1>
+                        <a href="{{ url_for('report_admin_summary_rt', date_str='previous') }}" class="btn btn-purple0" role="button">Last month</a>
+                        <a href="{{ url_for('report_admin_summary_rt', date_str='next') }}" class="btn btn-purple0" role="button">Next month</a>
+                        <a href="{{ url_for('report_admin_summary_history') }}" class="btn btn-purple1" role="button">Total</a>
+                        <a href="{{ url_for('report_user_rt', date_str='current') }}" class="btn btn-primary" role="button">Details</a>
+                        {% else %}
+                        <h1>Consumption details {{current_date}}</h1>
+                        <a href="{{ url_for('report_user_rt', date_str='previous') }}" class="btn btn-info" role="button">Last month</a>
+                        <a href="{{ url_for('report_user_rt', date_str='next') }}" class="btn btn-info" role="button">Next month</a>
+                        <a href="{{ url_for('report_user_history') }}" class="btn btn-primary" role="button">Total</a>
+                        <a href="{{ url_for('report_admin_summary_rt', date_str='current') }}" class="btn btn-purple1" role="button">Summary</a>
+                        {% endif %}
+                    {% elif flag == "history" %}
+                        {% if summary %}
+                        <h1>Consumption summary Total</h1>
+                        <a href="{{ url_for('report_admin_summary_rt', date_str='current') }}" class="btn btn-purple0" role="button">Return</a>
+                        {% else %}
+                        <h1>Consumption details Total</h1>
+                        <a href="{{ url_for('report_user_rt', date_str='current') }}" class="btn btn-info" role="button">Return</a>
+                        {% endif %}
+                    {% endif %}
+
+                    <a href="{{ url_for('admin') }}" class="btn btn-success" role="button">admin</a>
+                    <a href="{{ url_for('logout') }}" class="btn btn-warning pos_logout" role="button">logout</a>
+                    {{content|safe}}
+                {% endif %}
+            </div>
+        </div>
+    </body>
+</html>

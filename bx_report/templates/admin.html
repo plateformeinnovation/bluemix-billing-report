@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>User report</title>
+        <link rel=stylesheet type=text/css href="{{ url_for('static', filename='bootstrap.css') }}">
+        <style>
+            h1 {
+                font-family: Verdana;
+                font-size: 180%;
+                color: #024457;
+                margin-top: 15px;
+                margin-bottom: 20px;
+            }
+            h1 span {
+              color: #167F92;
+            }
+            h2 {
+            color:  #f0f3f4;
+            font-family: Tahoma, Geneva, sans-serif;
+            font-size: 130%;
+            border-style: solid;
+            border-color:  #1a5276;
+            background-color:  #1a5276;
+            margin-top: 25px;
+            margin-bottom: 17px;
+            border-radius: 6px;
+            }
+            h3 {
+            color: #424949;
+            font-family: courier;
+            font-size: 130%;
+            margin-top: 15px;
+            }
+            a.pos_logout {
+            position: absolute;
+            right: 180px;
+            }
+            div.pos_summary {
+            position: relative;
+            left: 220px;
+            }
+            .btn-details {
+            color: #fff;
+            background-color:  #a569bd;
+            border-color:  #a569bd;
+            }
+            .responstable {
+              margin: 1em 0;
+              width: 100%;
+              overflow: hidden;
+              background: #FFF;
+              color: #024457;
+              border-radius: 10px;
+              border: 1px solid #167F92;
+            }
+            .responstable tr {
+              border: 1px solid #D9E4E6;
+            }
+            .responstable tr:nth-child(odd) {
+              background-color: #EAF3F3;
+            }
+            .responstable th {
+              display: none;
+              border: 1px solid #FFF;
+              background-color: #167F92;
+              color: #FFF;
+              padding: 1em;
+            }
+            .responstable th:first-child {
+              display: table-cell;
+              text-align: center;
+            }
+            .responstable th:nth-child(2) {
+              display: table-cell;
+            }
+            .responstable th:nth-child(2) span {
+              display: none;
+            }
+            .responstable th:nth-child(2):after {
+              content: attr(data-th);
+            }
+            @media (min-width: 480px) {
+              .responstable th:nth-child(2) span {
+                display: block;
+              }
+              .responstable th:nth-child(2):after {
+                display: none;
+              }
+            }
+            .responstable td {
+              display: block;
+              word-wrap: break-word;
+              max-width: 7em;
+            }
+            .responstable td:first-child {
+              display: table-cell;
+              text-align: center;
+              border-right: 1px solid #D9E4E6;
+            }
+            @media (min-width: 480px) {
+              .responstable td {
+                border: 1px solid #D9E4E6;
+              }
+            }
+            .responstable th, .responstable td {
+              text-align: left;
+              margin: .5em 1em;
+            }
+            @media (min-width: 480px) {
+              .responstable th, .responstable td {
+                display: table-cell;
+                padding: 1em;
+              }
+            }
+            body {
+              padding: 0 2em;
+              font-family: Arial, sans-serif;
+              color: #024457;
+              background: #f2f2f2;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="wrapper">
+            <div class="container">
+                <h1>User management</h1>
+                    <a href="{{ url_for('report_admin_summary_rt', date_str='current') }}" class="btn btn-info" role="button">Return</a>
+                    <a href="{{ url_for('logout') }}" class="btn btn-warning pos_logout" role="button">logout</a>
+                    {{content|safe}}
+            </div>
+        </div>
+    </body>
+</html>
