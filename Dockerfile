@@ -16,6 +16,7 @@ RUN wget https://s3-us-west-1.amazonaws.com/cf-cli-releases/releases/v6.23.1/cf-
 WORKDIR ${BXREPORT_HOME}
 ADD . ${BXREPORT_HOME}
 RUN pip install -r requirements.txt
+RUN cf login -a https://api.eu-gb.bluemix.net -u frederic.duport@open-groupe.com -p IF1VNFuOm=BoS -o moodpeek -s prod
 
 # default docker execution command
 CMD ["python","/opt/bluemix-report/run.py"]

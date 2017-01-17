@@ -10,7 +10,7 @@ import psycopg2
 
 class BluemixLoader(object):
     def __init__(self, db_host, db_port, db_user, db_password, db_name,
-                 bx_login, bx_pw, schema, billing_table,
+                 bx_login, bx_pw, schema='public', billing_table='billing',
                  api_uk="https://api.eu-gb.bluemix.net",
                  api_us="https://api.ng.bluemix.net",
                  api_au="https://api.au-syd.bluemix.net",
@@ -78,6 +78,7 @@ class BluemixLoader(object):
         self.logger.debug('Connected to au')
         self.__load_current_region(starting_date)
 
+        self.conn.commit()
         self.conn.close()
 
     def __CFLogin(self, region, organization="moodpeek", space="dev"):
@@ -113,7 +114,7 @@ class BluemixLoader(object):
             while (report_date >= beginning_date):
                 report_date_str = self.__format_date(report_date)
                 org_list = self.__get_organization_list(report_date_str)
-                self.logger.debug(str(org_list))
+                self.logger.debug('organization list: ' + str(org_list))
                 for org in org_list:
                     bill_records = self.__retrieve_records(org, report_date_str)
                     if bill_records:
@@ -138,6 +139,9 @@ class BluemixLoader(object):
             self.logger.info('Region {} already loaded, loading skipped.'.format(self.connected_region))
 
     def __get_organization_list(self, report_date):
+        '''
+        when bx bss orgs-usage-summary command works
+
         command_summary = "bx bss orgs-usage-summary -d %s --json" % (report_date)
         self.logger.debug('Getting organization list for {}'.format(report_date))
         childProcess = subprocess.Popen(command_summary, shell=True, stdout=subprocess.PIPE)
@@ -158,11 +162,21 @@ class BluemixLoader(object):
         if json_data["organizations"]:
             for org in json_data["organizations"]:
                 org_list.append(org["name"])
+        '''
+
+        command_summary = "cf orgs"
+        childProcess = subprocess.Popen(command_summary, shell=True, stdout=subprocess.PIPE)
+        out, err = childProcess.communicate()
+        returnCode = childProcess.poll()
+        while returnCode != 0:
+            childProcess = subprocess.Popen(command_summary, shell=True, stdout=subprocess.PIPE)
+            out, err = childProcess.communicate()
+            returnCode = childProcess.poll()
+        org_list = out.split('\n')[3:-1]
         return org_list
 
     def __retrieve_records(self, org, report_date):
         command_org = "bluemix bss org-usage %s --json -d %s" % (org, report_date)
-        self.logger.debug('Loading organization {} for {}'.format(org, report_date))
         childProcess = subprocess.Popen(command_org, shell=True, stdout=subprocess.PIPE)
         out, err = childProcess.communicate()
         returnCode = childProcess.poll()
@@ -170,19 +184,21 @@ class BluemixLoader(object):
         if returnCode == 0:
             json_str = out
         while returnCode != 0:
-            count += 1
-            if count == 5:
+            if count > 4:
+                self.logger.debug('{} {}: Failed - connection error'.format(org, report_date))
                 return None
-            self.logger.debug('Loading organization again {} for {}'.format(org, report_date))
             childProcess = subprocess.Popen(command_org, shell=True, stdout=subprocess.PIPE)
             out, err = childProcess.communicate()
             returnCode = childProcess.poll()
             if returnCode == 0:
                 json_str = out
+            count += 1
         json_data = json.loads(json_str)
         spaces_list_raw = json_data[0]["billable_usage"]["spaces"]
         if not spaces_list_raw:
+            self.logger.debug('{} {}: None.'.format(org, report_date))
             return None
+        self.logger.debug('{} {}: Loaded.'.format(org, report_date))
         region = json_data[0]["region"]
         space_bill_list = list()
         for space in spaces_list_raw:
@@ -215,7 +231,6 @@ class BluemixLoader(object):
             """ % (self.schema, self.billing_table, applications,
                    containers, services, region, org, space, date)
         self.cursor.execute(UPDATE_STATEMENT)
-        self.conn.commit()
 
     def __insert_record(self, region, org, space, date, applications, containers, services):
         INSERT_STATEMENT = """
@@ -225,7 +240,6 @@ class BluemixLoader(object):
             """ % (self.schema, self.billing_table,
                    region, org, space, date, applications, containers, services)
         self.cursor.execute(INSERT_STATEMENT)
-        self.conn.commit()
 
     def __format_date(self, current_date):
         return str(current_date.year) + "-" + (
@@ -286,3 +300,4 @@ class BluemixLoader(object):
             for usage in element["usage"]:
                 sum += usage[aspect]
         return sum
+

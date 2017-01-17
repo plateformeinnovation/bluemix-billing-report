@@ -1,77 +1,25 @@
 # coding:utf-8
 
-import os
-import re
-import sys
 import logging
 from datetime import date
 
 import flask
 import flask_login
 
-from .BluemixLoader import BluemixLoader
-from .BluemixTable import BluemixTable
+from core.BluemixTable import BluemixTable
+from database import get_table
+from user import User, login_manager, user_loader
 
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-VCAP = 'VCAP_SERVICES_COMPOSE_FOR_POSTGRESQL_0_CREDENTIALS_URI'
-
-
-def retrieve_VCAP(VCAP):
-    VCAP_VALUE = os.environ[VCAP]
-    INFO = re.split(r'://|:|@|/', VCAP_VALUE)
-    DBUser = INFO[1]
-    DBPassword = INFO[2]
-    DBHost = INFO[3]
-    DBPort = INFO[4]
-    DBName = INFO[5]
-    return (DBUser, DBPassword, DBHost, DBPort, DBName)
-
-
-DBUser, DBPassword, DBHost, DBPort, DBName = retrieve_VCAP(VCAP)
-logger.debug('PostgreSQL login: ' + DBUser)
-logger.debug('PostgreSQL password: ' + DBPassword)
-logger.debug('PostgreSQL host: ' + DBHost)
-logger.debug('PostgreSQL port: ' + DBPort)
-logger.debug('PostgreSQL database: ' + DBName)
-
-# create BluemixTable object
-bluemixTable = BluemixTable(DBHost, DBPort, DBName, DBUser, DBPassword)
-
 # create a flask app
 app = flask.Flask(__name__)
-app.secret_key = 'secret'
+app.config.from_object('config')
+app.secret_key = app.config['SECRET_KEY']
 
-# create a login manager
-login_manager = flask_login.LoginManager()
-login_manager.login_view = 'login'
 login_manager.init_app(app)
-
-
-# User class inherits from flask_login.UserMixin
-class User(flask_login.UserMixin):
-    def __init__(self, su):
-        self.su = su
-
-    # super user or not
-    def getSu(self):
-        return self.su
-
-
-# reload user when necessar
-@login_manager.user_loader
-def user_loader(email):
-    su = bluemixTable.client.get_su(email)
-    try:
-        su = su[0][0]
-    except IndexError:
-        print >> sys.stderr, 'user {} information error'.format(email)
-        return None
-    user = User(su)
-    user.id = email
-    return user
 
 
 # the route() decorator tells Flask what URL should trigger this function
@@ -85,12 +33,12 @@ def login():
 
         email = flask.request.form['email']
         password = flask.request.form['pw']
-        auth_info = bluemixTable.client.get_auth_info(email, password)
+        auth_info = get_table().client.get_auth_info(email, password)
 
         if auth_info:  # successfully authenticated
             global current_date
             global organizations
-            current_date = bluemixTable.client.date_str(date.today())
+            current_date = get_table().client.date_str(date.today())
             organizations = auth_info[0][1]
             if not auth_info[0][0]:  # normal user
                 user = user_loader(email)
@@ -115,7 +63,7 @@ def __report(su, date_str):
     tables = ''
     for organization in organizations:
         tables += '\n<h3>' + organization + '</h3>\n'
-        tables += bluemixTable.table(organization, date_str)
+        tables += get_table().table(organization, date_str)
     return flask.render_template('report.html', content=tables,
                                  su=su, flag=flag, current_date=date_str)
 
@@ -132,7 +80,7 @@ def last_month(date_str):
 
 
 def next_month(date_str):
-    if date_str == bluemixTable.client.date_str(date.today()):
+    if date_str == get_table().client.date_str(date.today()):
         return date_str
     year = int(date_str.split('-')[0])
     month = int(date_str.split('-')[1])
@@ -172,9 +120,9 @@ def __report_admin(su, date_str, summary):
     tables_category = '\n<h2 class="round">Consumption by categories</h2>\n'
     for organization in organizations:
         tables_space += '\n<h3>' + organization + '</h3>\n'
-        tables_space += bluemixTable.table_space_sum(organization, date_str)
+        tables_space += get_table().table_space_sum(organization, date_str)
         tables_category += '\n<h3>' + organization + '</h3>\n'
-        tables_category += bluemixTable.table_category_sum(organization, date_str)
+        tables_category += get_table().table_category_sum(organization, date_str)
     return flask.render_template('report.html', content=tables_space + tables_category, su=su,
                                  flag=flag, summary=summary, current_date=date_str)
 
@@ -215,7 +163,7 @@ def admin():
         dict_post = flask.request.form.to_dict()
         if dict_post.has_key('delete'):
             user_to_delete = dict_post['delete']
-            bluemixTable.client.delete_user(user_to_delete)
+            get_table().client.delete_user(user_to_delete)
             return flask.redirect(flask.url_for('admin'))
         elif dict_post.has_key('username'):
             username = dict_post['username']
@@ -227,21 +175,21 @@ def admin():
             if su:
                 orgs.remove('su')
             if username and password:
-                bluemixTable.client.insert_user(username, password, su, orgs)
+                get_table().client.insert_user(username, password, su, orgs)
         else:
             for item in dict_post:
                 if '@' in item:
                     user = item
             orgs = dict_post.keys()
             orgs.remove(user)
-            bluemixTable.client.update_user_orgs(user, orgs)
+            get_table().client.update_user_orgs(user, orgs)
             return flask.redirect(flask.url_for('admin'))
 
-    items = bluemixTable.client.list_all_users()
+    items = get_table().client.list_all_users()
     items = sorted(items, key=lambda x: x[0])
     # if len(items) == 0:
     #     raise ValueError('no users in database.')
-    table = bluemixTable.admin_table(items)
+    table = get_table().admin_table(items)
     return flask.render_template('admin.html', content=table)
 
 
