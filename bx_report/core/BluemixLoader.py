@@ -11,6 +11,7 @@ import psycopg2
 class BluemixLoader(object):
     def __init__(self, db_host, db_port, db_user, db_password, db_name,
                  bx_login, bx_pw, schema='public', billing_table='billing',
+                 authTable='authentication',
                  api_uk="https://api.eu-gb.bluemix.net",
                  api_us="https://api.ng.bluemix.net",
                  api_au="https://api.au-syd.bluemix.net",
@@ -24,6 +25,7 @@ class BluemixLoader(object):
         self.db_password = db_password
         self.schema = schema
         self.billing_table = billing_table
+        self.authTable = authTable
 
         self.bx_login = bx_login
         self.bx_password = bx_pw
@@ -36,6 +38,15 @@ class BluemixLoader(object):
 
         self.connected_region = None
         self.loaded_region = list()
+
+        self.CREATE_AUTH_TABLE_STATEMENT = '''
+            CREATE TABLE IF NOT EXISTS %s.%s(
+                login character varying NOT NULL,
+                password character varying,
+                su boolean,
+                orgs text[],
+                CONSTRAINT authentication_pkey PRIMARY KEY (login)
+            );''' % (self.schema, self.authTable)
 
         self.CREATE_TABLE_STATEMENT = """
             CREATE TABLE IF NOT EXISTS %s.%s(
@@ -55,11 +66,20 @@ class BluemixLoader(object):
                 user=self.db_user, password=self.db_password)
             self.logger.debug('Database {} connected.'.format(db_name))
             self.cursor = self.conn.cursor()
+            self.cursor.execute(self.CREATE_AUTH_TABLE_STATEMENT)
+            self.conn.commit()
+            self.logger.debug('Authentication table created.')
+            all_orgs = self.__load_all_organizations()
+            self.__insert_user('admin', 'admin', True, all_orgs)
+            self.logger.debug('Admin user added.')
             self.cursor.execute(self.CREATE_TABLE_STATEMENT)
             self.conn.commit()
             self.logger.debug('Table {}.{} created.'.format(self.schema, self.billing_table))
         except psycopg2.OperationalError:
             print >> sys.stderr, "database connection error."
+
+    def __del__(self):
+        self.conn.close()
 
     def last_month_date(self):
         today = date.today()
@@ -79,7 +99,20 @@ class BluemixLoader(object):
         self.__load_current_region(starting_date)
 
         self.conn.commit()
-        self.conn.close()
+
+    def __load_all_organizations(self):
+        organizations = []
+        self.__CFLogin('uk')
+        self.logger.debug('Connected to uk')
+        organizations.extend(self.__get_organization_list(''))
+        self.__CFLogin('us')
+        self.logger.debug('Connected to us')
+        organizations.extend(self.__get_organization_list(''))
+        self.__CFLogin('au')
+        self.logger.debug('Connected to au')
+        organizations.extend(self.__get_organization_list(''))
+        return list(set(organizations))
+
 
     def __CFLogin(self, region, organization="moodpeek", space="dev"):
         if region == "uk":
@@ -116,10 +149,13 @@ class BluemixLoader(object):
                 org_list = self.__get_organization_list(report_date_str)
                 self.logger.debug('organization list: ' + str(org_list))
                 for org in org_list:
+                    self.logger.debug('loading ' + org)
                     bill_records = self.__retrieve_records(org, report_date_str)
+                    self.logger.debug(str(bill_records))
                     if bill_records:
                         for record in bill_records:
                             if self.__check_exist(record["region"], org, record["space"], record["date"]):
+                                self.logger.debug('existed ' + str(record))
                                 if report_date.year == date.today().year and report_date.month == date.today().month:
                                     self.__update_record(record["region"], org, record["space"], record["date"],
                                                          json.dumps(record["applications"]),
@@ -128,6 +164,7 @@ class BluemixLoader(object):
                                 else:
                                     break
                             else:
+                                self.logger.debug('insert ' + str(record))
                                 self.__insert_record(record["region"], org, record["space"], record["date"],
                                                      json.dumps(record["applications"]),
                                                      json.dumps(record["containers"]),
@@ -176,6 +213,7 @@ class BluemixLoader(object):
         return org_list
 
     def __retrieve_records(self, org, report_date):
+        self.logger.debug('retrieving ' + org + ' json file.')
         command_org = "bluemix bss org-usage %s --json -d %s" % (org, report_date)
         childProcess = subprocess.Popen(command_org, shell=True, stdout=subprocess.PIPE)
         out, err = childProcess.communicate()
@@ -231,6 +269,7 @@ class BluemixLoader(object):
             """ % (self.schema, self.billing_table, applications,
                    containers, services, region, org, space, date)
         self.cursor.execute(UPDATE_STATEMENT)
+        self.conn.commit()
 
     def __insert_record(self, region, org, space, date, applications, containers, services):
         INSERT_STATEMENT = """
@@ -240,6 +279,7 @@ class BluemixLoader(object):
             """ % (self.schema, self.billing_table,
                    region, org, space, date, applications, containers, services)
         self.cursor.execute(INSERT_STATEMENT)
+        self.conn.commit()
 
     def __format_date(self, current_date):
         return str(current_date.year) + "-" + (
@@ -301,3 +341,20 @@ class BluemixLoader(object):
                 sum += usage[aspect]
         return sum
 
+    def __insert_user(self, user, password, su, orgs):
+        su = 'true' if su else 'false'
+        orgs_str = str()
+        for org in orgs:
+            orgs_str += '"' + org + '",'
+        orgs_str = '{' + orgs_str[:-1] + '}'
+        INSERT_STATEMENT = '''
+            INSERT INTO {schema}.{table} (login, password, su, orgs)
+            VALUES ('{login}', '{password}', '{su}', '{orgs}')
+            ON CONFLICT (login) DO UPDATE SET
+            password=EXCLUDED.password,
+            su=EXCLUDED.su,
+            orgs=EXCLUDED.orgs
+            '''.format(schema=self.schema, table=self.authTable, login=user,
+                          password=password, su=su, orgs=orgs_str)
+        self.cursor.execute(INSERT_STATEMENT)
+        self.conn.commit()

@@ -175,7 +175,7 @@ def admin():
             if su:
                 orgs.remove('su')
             if username and password:
-                get_table().client.insert_user(username, password, su, orgs)
+                get_table().client.__insert_user(username, password, su, orgs)
         else:
             for item in dict_post:
                 if '@' in item:

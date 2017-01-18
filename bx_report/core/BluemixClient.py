@@ -10,7 +10,7 @@ class BluemixClient(object):
 
     def __init__(self, dbhost, dbport, dbname, dbuser, dbpassword,
                  dbschema='public', billingTable='billing',
-                 authTable='authentication', all_orgs=None):
+                 authTable='authentication'):
 
         self.logger = logging.getLogger(__name__)
 
@@ -18,30 +18,12 @@ class BluemixClient(object):
         self.billingTable = billingTable
         self.authTable = authTable
 
-        self.CREATE_AUTH_TABLE_STATEMENT = '''
-            CREATE TABLE IF NOT EXISTS %s.%s(
-                login character varying NOT NULL,
-                password character varying,
-                su boolean,
-                orgs text[],
-                CONSTRAINT authentication_pkey PRIMARY KEY (login)
-            );''' % (self.dbschema, self.authTable)
-
-        self.all_orgs = all_orgs if all_orgs else ['infra-services', 'data-science', 'formation_spring',
-                                                   'open-groupe.com', 'gamo', 'CDO', 'moodpeek']
-        self.logger.debug('all organizations: ' + ' '.join(self.all_orgs))
-
         try:
             self.conn = psycopg2.connect(
                 host=dbhost, port=dbport, database=dbname,
                 user=dbuser, password=dbpassword)
             self.logger.debug('Database {} connected.'.format(dbname))
             self.cursor = self.conn.cursor()
-            self.cursor.execute(self.CREATE_AUTH_TABLE_STATEMENT)
-            self.conn.commit()
-            self.logger.debug('Authentication table created.')
-            self.insert_user('admin', 'admin', True, self.all_orgs)
-            self.logger.debug('Admin user added.')
         except psycopg2.OperationalError:
             print >> sys.stderr, "database connection error."
 

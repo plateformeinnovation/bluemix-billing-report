@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import threading
+import time
 
 from bx_report import app
 from bx_report.database import get_loader, sleep_time
@@ -21,6 +22,7 @@ class LoadingThread(threading.Thread):
     def run(self):
         self.bluemix.load_all_region(self.bluemix.beginning_date)
         while True:
+            time.sleep(sleep_time)
             self.bluemix.load_all_region(self.bluemix.last_month_date())
 
 
