@@ -104,13 +104,13 @@ class BluemixLoader(object):
         organizations = []
         self.__CFLogin('uk')
         self.logger.debug('Connected to uk')
-        organizations.extend(self.__get_organization_list(''))
+        organizations.extend(self.__get_organization_list_cf())
         self.__CFLogin('us')
         self.logger.debug('Connected to us')
-        organizations.extend(self.__get_organization_list(''))
+        organizations.extend(self.__get_organization_list_cf())
         self.__CFLogin('au')
         self.logger.debug('Connected to au')
-        organizations.extend(self.__get_organization_list(''))
+        organizations.extend(self.__get_organization_list_cf())
         return list(set(organizations))
 
 
@@ -149,13 +149,11 @@ class BluemixLoader(object):
                 org_list = self.__get_organization_list(report_date_str)
                 self.logger.debug('organization list: ' + str(org_list))
                 for org in org_list:
-                    self.logger.debug('loading ' + org)
                     bill_records = self.__retrieve_records(org, report_date_str)
                     self.logger.debug(str(bill_records))
                     if bill_records:
                         for record in bill_records:
                             if self.__check_exist(record["region"], org, record["space"], record["date"]):
-                                self.logger.debug('existed ' + str(record))
                                 if report_date.year == date.today().year and report_date.month == date.today().month:
                                     self.__update_record(record["region"], org, record["space"], record["date"],
                                                          json.dumps(record["applications"]),
@@ -175,9 +173,23 @@ class BluemixLoader(object):
         else:
             self.logger.info('Region {} already loaded, loading skipped.'.format(self.connected_region))
 
+    def __get_organization_list_cf(self):
+
+
+        command_summary = "cf orgs"
+        childProcess = subprocess.Popen(command_summary, shell=True, stdout=subprocess.PIPE)
+        out, err = childProcess.communicate()
+        returnCode = childProcess.poll()
+        while returnCode != 0:
+            childProcess = subprocess.Popen(command_summary, shell=True, stdout=subprocess.PIPE)
+            out, err = childProcess.communicate()
+            returnCode = childProcess.poll()
+        org_list = out.split('\n')[3:-1]
+
+        return org_list
+
+
     def __get_organization_list(self, report_date):
-        '''
-        when bx bss orgs-usage-summary command works
 
         command_summary = "bx bss orgs-usage-summary -d %s --json" % (report_date)
         self.logger.debug('Getting organization list for {}'.format(report_date))
@@ -193,27 +205,15 @@ class BluemixLoader(object):
             returnCode = childProcess.poll()
             if returnCode == 0:
                 json_str = out
-        self.logger.debug(json_str)
         json_data = json.loads(json_str)
         org_list = list()
         if json_data["organizations"]:
             for org in json_data["organizations"]:
                 org_list.append(org["name"])
-        '''
 
-        command_summary = "cf orgs"
-        childProcess = subprocess.Popen(command_summary, shell=True, stdout=subprocess.PIPE)
-        out, err = childProcess.communicate()
-        returnCode = childProcess.poll()
-        while returnCode != 0:
-            childProcess = subprocess.Popen(command_summary, shell=True, stdout=subprocess.PIPE)
-            out, err = childProcess.communicate()
-            returnCode = childProcess.poll()
-        org_list = out.split('\n')[3:-1]
         return org_list
 
     def __retrieve_records(self, org, report_date):
-        self.logger.debug('retrieving ' + org + ' json file.')
         command_org = "bluemix bss org-usage %s --json -d %s" % (org, report_date)
         childProcess = subprocess.Popen(command_org, shell=True, stdout=subprocess.PIPE)
         out, err = childProcess.communicate()
@@ -268,7 +268,10 @@ class BluemixLoader(object):
             WHERE region = '%s' AND organization = '%s' AND space = '%s' AND date = '%s';
             """ % (self.schema, self.billing_table, applications,
                    containers, services, region, org, space, date)
-        self.cursor.execute(UPDATE_STATEMENT)
+        try:
+            self.cursor.execute(UPDATE_STATEMENT)
+        except:
+            self.logger.debug('EXCEPTION in update.')
         self.conn.commit()
 
     def __insert_record(self, region, org, space, date, applications, containers, services):
