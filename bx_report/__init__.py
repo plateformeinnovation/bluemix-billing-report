@@ -9,7 +9,7 @@ import flask_login
 from core.BluemixTable import BluemixTable
 from database import get_table
 from user import User, login_manager, user_loader
-
+from utils.Utilsdate import Utilsdate
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -38,7 +38,7 @@ def login():
         if auth_info:  # successfully authenticated
             global current_date
             global organizations
-            current_date = get_table().client.date_str(date.today())
+            current_date = Utilsdate().stringnize_date(date.today())
             organizations = auth_info[0][1]
             if not auth_info[0][0]:  # normal user
                 user = user_loader(email)
@@ -62,34 +62,14 @@ def __report(su, date_str):
     global organizations
     tables = ''
     for organization in organizations:
-        tables += '\n<h3>' + organization + '</h3>\n'
-        tables += get_table().table(organization, date_str)
+        table = get_table().table(organization, date_str)
+        if table:
+            tables += '\n<h3>' + organization + '</h3>\n'
+            tables += table
     return flask.render_template('report.html', content=tables,
                                  su=su, flag=flag, current_date=date_str)
 
 
-def last_month(date_str):
-    year = int(date_str.split('-')[0])
-    month = int(date_str.split('-')[1])
-    if month == 1:
-        year -= 1
-        month = 12
-    else:
-        month -= 1
-    return str(year) + ('-0' if month < 10 else '-') + str(month)
-
-
-def next_month(date_str):
-    if date_str == get_table().client.date_str(date.today()):
-        return date_str
-    year = int(date_str.split('-')[0])
-    month = int(date_str.split('-')[1])
-    if month == 12:
-        year += 1
-        month = 1
-    else:
-        month += 1
-    return str(year) + ('-0' if month < 10 else '-') + str(month)
 
 
 @app.route('/report_user_rt/<date_str>')
@@ -97,9 +77,9 @@ def next_month(date_str):
 def report_user_rt(date_str):
     global current_date
     if date_str == 'previous':
-        current_date = last_month(current_date)
+        current_date = Utilsdate().previous_month_str(current_date)
     if date_str == 'next':
-        current_date = next_month(current_date)
+        current_date = Utilsdate().next_month_str(current_date)
 
     return __report(flask_login.current_user.getSu(), current_date)
 
@@ -119,10 +99,14 @@ def __report_admin(su, date_str, summary):
     tables_space = '\n<h2 class="round">Consumption by spaces</h2>\n'
     tables_category = '\n<h2 class="round">Consumption by categories</h2>\n'
     for organization in organizations:
-        tables_space += '\n<h3>' + organization + '</h3>\n'
-        tables_space += get_table().table_space_sum(organization, date_str)
-        tables_category += '\n<h3>' + organization + '</h3>\n'
-        tables_category += get_table().table_category_sum(organization, date_str)
+        table_space = get_table().table_space_sum(organization, date_str)
+        table_category = get_table().table_category_sum(organization, date_str)
+        if table_space:
+            tables_space += '\n<h3>' + organization + '</h3>\n'
+            tables_space +=  table_space
+        if table_category:
+            tables_category += '\n<h3>' + organization + '</h3>\n'
+            tables_category += table_category
     return flask.render_template('report.html', content=tables_space + tables_category, su=su,
                                  flag=flag, summary=summary, current_date=date_str)
 
@@ -132,9 +116,9 @@ def __report_admin(su, date_str, summary):
 def report_admin_summary_rt(date_str):
     global current_date
     if date_str == 'previous':
-        current_date = last_month(current_date)
+        current_date = Utilsdate().previous_month_str(current_date)
     if date_str == 'next':
-        current_date = next_month(current_date)
+        current_date = Utilsdate().next_month_str(current_date)
     return __report_admin(flask_login.current_user.getSu(), current_date, True)
 
 
@@ -175,7 +159,7 @@ def admin():
             if su:
                 orgs.remove('su')
             if username and password:
-                get_table().client.__insert_user(username, password, su, orgs)
+                get_table().client.insert_user(username, password, su, orgs)
         else:
             for item in dict_post:
                 if '@' in item:

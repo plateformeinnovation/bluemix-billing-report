@@ -58,10 +58,6 @@ class BluemixClient(object):
             SELECT_STATEMENT = SELECT_STATEMENT[:-5]
         return SELECT_STATEMENT
 
-    def date_str(self, current_date):
-        return str(current_date.year) + "-" + (
-            ("0" + str(current_date.month))
-            if current_date.month < 10 else str(current_date.month))
 
     def __get_records(self, region, org, *args):
         '''

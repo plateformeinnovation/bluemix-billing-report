@@ -17,13 +17,13 @@ class LoadingThread(threading.Thread):
 
         self.sleepTime = float(sleep_time)
 
-        self.bluemix = get_loader()
+        self.bluemix_loader = get_loader()
 
     def run(self):
-        self.bluemix.load_all_region(self.bluemix.beginning_date)
+        self.bluemix_loader.load_all_region(self.bluemix_loader.beginning_date)
         while True:
             time.sleep(sleep_time)
-            self.bluemix.load_all_region(self.bluemix.last_month_date())
+            self.bluemix_loader.load_all_region(self.bluemix_loader.last_month_date())
 
 
 loadingThread = LoadingThread(sleep_time)

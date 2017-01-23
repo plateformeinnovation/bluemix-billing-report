@@ -22,6 +22,9 @@ class BluemixTable(object):
             row_list.extend(rows_for_region)
         row_list.append(dict(region='', space='', category='', unit='', usage='', cost=sum_cost))
 
+        if sum_cost == 0:
+            return None
+
         BillingTable = create_table('BillingTable') \
             .add_column('region', Col('region')) \
             .add_column('space', Col('space')) \
@@ -71,6 +74,9 @@ class BluemixTable(object):
             row_list.extend(rows_for_region)
         row_list.append(dict(region='', space='', cost=sum_cost))
 
+        if sum_cost == 0:
+            return None
+
         BillingTable = create_table('SummaryTable') \
             .add_column('region', Col('region')) \
             .add_column('space', Col('space')) \
@@ -103,6 +109,9 @@ class BluemixTable(object):
                 sum_cost += row['cost']
             row_list.extend(rows_for_region)
         row_list.append(dict(region='', category='', cost=sum_cost))
+
+        if sum_cost == 0:
+            return None
 
         BillingTable = create_table('SummaryTable') \
             .add_column('region', Col('region')) \
