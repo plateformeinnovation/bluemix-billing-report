@@ -149,6 +149,8 @@ def admin():
             user_to_delete = dict_post['delete']
             get_table().client.delete_user(user_to_delete)
             return flask.redirect(flask.url_for('admin'))
+        elif dict_post.has_key('modify'):
+            logger.debug(str(dict_post))
         elif dict_post.has_key('username'):
             username = dict_post['username']
             password = dict_post['password']

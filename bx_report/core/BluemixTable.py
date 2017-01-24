@@ -172,6 +172,10 @@ class BluemixTable(object):
             login = '<form method="post">\n' + item[0] + \
                     '<input type="hidden" name="delete" value="%s">' % item[0] + \
                     '<br>\n<button type="submit">Delete</button>\n' + \
+                    '</form>\n' + \
+                    '<form method="post">\n' + \
+                    '<br>\n<input type="text" name="modify">' + \
+                    '<br>\n<button type="submit">Reset password</button>\n' + \
                     '</form>\n'
             row = dict(login=login,
                        spaces=self.__gen_checkbox_form(item[0], item[1], organizations))
