@@ -1,6 +1,7 @@
 from abc import ABCMeta, abstractmethod
 
 class InterfaceAuthMod(object):
+    # metaclass: the class of a class
     __metaclass__ = ABCMeta
 
     @abstractmethod

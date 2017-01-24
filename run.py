@@ -2,8 +2,9 @@
 import threading
 import time
 
-from bx_report import app
-from bx_report.database import get_loader, sleep_time
+from bx_report.src import app
+from bx_report.src.factory import sleep_time
+from bx_report.src.factory.get_loader import get_loader
 
 
 class LoadingThread(threading.Thread):

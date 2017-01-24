@@ -19,6 +19,7 @@ class BXLoader(DBConnection, InterfaceAuthMod):
                  api_au="https://api.au-syd.bluemix.net",
                  beginning_date=None):
 
+        # call correspond __init__ method by mro (Method Resolution Order)
         super(BXLoader, self).__init__(host, port, user, password, dbname,
                                        schema, billing_table, auth_table)
 
@@ -136,4 +137,3 @@ class BXLoader(DBConnection, InterfaceAuthMod):
                    region, org, space, date, applications, containers, services)
         self.cursor.execute(INSERT_STATEMENT)
         self.conn.commit()
-
