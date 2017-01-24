@@ -10,7 +10,7 @@ class BluemixTable(object):
 
         self.logger.debug('initializing BluemixTable.')
 
-        self.client = BluemixClient(host, port, dbname, user, password)
+        self.client = BluemixClient(host, port, user, password, dbname, 'public', 'billing', 'authentication')
 
     def table(self, organization, date):
         row_list = list()
@@ -174,6 +174,7 @@ class BluemixTable(object):
                     '<br>\n<button type="submit">Delete</button>\n' + \
                     '</form>\n' + \
                     '<form method="post">\n' + \
+                    '<input type="hidden" name="login" value="%s">' % item[0] + \
                     '<br>\n<input type="text" name="modify">' + \
                     '<br>\n<button type="submit">Reset password</button>\n' + \
                     '</form>\n'

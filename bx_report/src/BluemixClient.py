@@ -1,67 +1,50 @@
 import sys
-import logging
 
-import psycopg2
+from bx_report.src.database.DBConnection import DBConnection
 
 
-class BluemixClient(object):
-    # This is a static variable (bound with class)
-    instanceCount = 0
+class BluemixClient(DBConnection):
+    '''
+    Python inherits constructor(__init__) and destructor(__del__) directly !!!
+    Here we overwrite __init__
+    '''
 
-    def __init__(self, dbhost, dbport, dbname, dbuser, dbpassword,
-                 dbschema='public', billingTable='billing',
-                 authTable='authentication'):
+    def __init__(self, host, port, user, password, dbname,
+                 schema, billing_table, auth_table):
 
-        self.logger = logging.getLogger(__name__)
+        super(BluemixClient, self).__init__(
+            host, port, user, password, dbname,
+            schema, billing_table, auth_table)
 
-        self.dbschema = dbschema
-        self.billingTable = billingTable
-        self.authTable = authTable
+        self.CREATE_AUTH_TABLE_STATEMENT = '''
+            CREATE TABLE IF NOT EXISTS %s.%s(
+                login character varying NOT NULL,
+                password character varying,
+                su boolean,
+                orgs text[],
+                CONSTRAINT authentication_pkey PRIMARY KEY (login)
+            );''' % (self.schema, self.auth_table)
 
         try:
-            self.conn = psycopg2.connect(
-                host=dbhost, port=dbport, database=dbname,
-                user=dbuser, password=dbpassword)
-            self.logger.debug('Database {} connected.'.format(dbname))
-            self.cursor = self.conn.cursor()
-        except psycopg2.OperationalError:
-            print >> sys.stderr, "database connection error."
+            self.__create_auth_table()
+            self.__insert_admin()
+        except:
+            print >> sys.stderr, "create auth table error."
 
-    def __del__(self):
-        BluemixClient.instanceCount -= 1
-        self.conn.close()
+    def __create_auth_table(self):
+        self.cursor.execute(self.CREATE_AUTH_TABLE_STATEMENT)
+        self.conn.commit()
+        self.logger.debug('Table {}.{} created.'.format(self.schema, self.auth_table))
 
-    def __select(self, column, schema, table, distinct=False, **kwargs):
-        '''
-        Generate a select cluase
-        :param column:
-        :param schema:
-        :param table:
-        :param distinct:
-        :param kwargs:
-        :return:
-        '''
-        if distinct:
-            SELECT_STATEMENT = """
-                SELECT DISTINCT %s FROM %s.%s
-                """ % (column, schema, table)
-        else:
-            SELECT_STATEMENT = """
-                SELECT %s FROM %s.%s
-                """ % (column, schema, table)
-        if len(kwargs) > 0:
-            SELECT_STATEMENT += " WHERE "
-            for key, value in kwargs.items():
-                if key == 'date' and value == 'history':
-                    continue
-                SELECT_STATEMENT += "%s = '%s' AND " % (key, value)
-            SELECT_STATEMENT = SELECT_STATEMENT[:-5]
-        return SELECT_STATEMENT
-
+    def __insert_admin(self):
+        if self.bx_tool.all_orgs is None:
+            self.bx_tool.get_orgs_list_all()
+        self.insert_user('admin', 'admin', True, self.bx_tool.all_orgs)
+        self.logger.debug('User admin added.')
 
     def __get_records(self, region, org, *args):
         '''
-        Get records in database for region, organization, [space], [date]
+        Get records in factory for region, organization, [space], [date]
         :param region:
         :param org:
         :param args:
@@ -79,33 +62,33 @@ class BluemixClient(object):
 
         if "history" in args:
             if len(args) == 1:
-                SELECT_STATEMENT = self.__select(
-                    '*', self.dbschema, self.billingTable, region=region,
+                SELECT_STATEMENT = self._select(
+                    '*', self.schema, self.billing_table, region=region,
                     organization=org)
             else:
                 space = args[0]
-                SELECT_STATEMENT = self.__select(
-                    '*', self.dbschema, self.billingTable, region=region,
+                SELECT_STATEMENT = self._select(
+                    '*', self.schema, self.billing_table, region=region,
                     space=space, organization=org)
         else:
             if len(args) == 1:
                 date = args[0]
-                SELECT_STATEMENT = self.__select(
-                    '*', self.dbschema, self.billingTable, region=region,
+                SELECT_STATEMENT = self._select(
+                    '*', self.schema, self.billing_table, region=region,
                     organization=org, date=date)
             else:
                 space = args[0]
                 date = args[1]
-                SELECT_STATEMENT = self.__select(
-                    '*', self.dbschema, self.billingTable, region=region,
+                SELECT_STATEMENT = self._select(
+                    '*', self.schema, self.billing_table, region=region,
                     space=space, organization=org, date=date)
 
         self.cursor.execute(SELECT_STATEMENT)
         return self.cursor.fetchall()
 
     def get_all_organizations(self):
-        SELECT_STATEMENT = self.__select(
-            'organization', self.dbschema, self.billingTable, distinct=True)
+        SELECT_STATEMENT = self._select(
+            'organization', self.schema, self.billing_table, distinct=True)
         self.cursor.execute(SELECT_STATEMENT)
         return self.cursor.fetchall()
 
@@ -126,8 +109,8 @@ class BluemixClient(object):
         if region == "au":
             region = "au-syd"
 
-        LIST_SPACES = self.__select(
-            'space', self.dbschema, self.billingTable, distinct=True,
+        LIST_SPACES = self._select(
+            'space', self.schema, self.billing_table, distinct=True,
             region=region, organization=org, date=date)
 
         self.cursor.execute(LIST_SPACES)
@@ -157,7 +140,7 @@ class BluemixClient(object):
             return sum
         else:
             if len(records) > 1:
-                raise Exception("database storage exception.")
+                raise Exception("factory storage exception.")
             for element in records[0]:
                 if isinstance(element, dict):
                     if "cost" in element:
@@ -247,7 +230,7 @@ class BluemixClient(object):
             return res_dict_non_zero
         else:
             if len(records) > 1:
-                raise Exception("database storage exception.")
+                raise Exception("factory storage exception.")
             if records[0][4]['cost'] != 0:
                 res_dict['applications'] = records[0][4]
             if records[0][5]['cost'] != 0:
@@ -259,23 +242,30 @@ class BluemixClient(object):
             return res_dict
 
     def get_auth_info(self, login, password):
-        SELECT_STATEMENT = self.__select(
-            'su, orgs', self.dbschema, self.authTable,
+        SELECT_STATEMENT = self._select(
+            'su, orgs', self.schema, self.auth_table,
             login=login, password=password)
         self.cursor.execute(SELECT_STATEMENT)
         return self.cursor.fetchall()
 
     def get_su(self, login):
-        SELECT_STATEMENT = self.__select(
-            'su', self.dbschema, self.authTable, login=login)
+        SELECT_STATEMENT = self._select(
+            'su', self.schema, self.auth_table, login=login)
         self.cursor.execute(SELECT_STATEMENT)
         return self.cursor.fetchall()
 
     def list_all_users(self):
-        SELECT_STATEMENT = self.__select(
-            'login, orgs', self.dbschema, self.authTable, su='false')
+        SELECT_STATEMENT = self._select(
+            'login, orgs', self.schema, self.auth_table)
         self.cursor.execute(SELECT_STATEMENT)
         return self.cursor.fetchall()
+
+    def update_user_pw(self, user, pw):
+        UPDATE_STATEMENT = '''
+            UPDATE {}.{} SET password='{}' WHERE login='{}'
+            '''.format(self.schema, self.auth_table, pw, user)
+        self.cursor.execute(UPDATE_STATEMENT)
+        self.conn.commit()
 
     def update_user_orgs(self, user, orgs):
         orgs_str = str()
@@ -284,14 +274,14 @@ class BluemixClient(object):
         orgs_str = orgs_str[:-1]
         UPDATE_STATEMENT = '''
             UPDATE %s.%s SET orgs='{%s}' WHERE login='%s'
-            ''' % (self.dbschema, self.authTable, orgs_str, user)
+            ''' % (self.schema, self.auth_table, orgs_str, user)
         self.cursor.execute(UPDATE_STATEMENT)
         self.conn.commit()
 
     def delete_user(self, user):
         DELETE_STATEMENT = '''
             DELETE FROM %s.%s WHERE login='%s'
-            ''' % (self.dbschema, self.authTable, user)
+            ''' % (self.schema, self.auth_table, user)
         self.cursor.execute(DELETE_STATEMENT)
         self.conn.commit()
 
@@ -301,13 +291,26 @@ class BluemixClient(object):
         for org in orgs:
             orgs_str += '"' + org + '",'
         orgs_str = '{' + orgs_str[:-1] + '}'
-        INSERT_STATEMENT = '''
-            INSERT INTO {schema}.{table} (login, password, su, orgs)
-            SELECT '{login}', '{password}', '{su}', '{orgs}'
-            WHERE NOT EXISTS (
-                SELECT * FROM {schema}.{table}
-                WHERE login='{login}'
-            ); '''.format(schema=self.dbschema, table=self.authTable, login=user,
-                          password=password, su=su, orgs=orgs_str)
+        if su == 'true':
+            INSERT_STATEMENT = '''
+                INSERT INTO {schema}.{table} (login, password, su, orgs)
+                SELECT '{login}', '{password}', '{su}', orgs
+                FROM {schema}.{table}
+                WHERE login='admin'
+                AND NOT EXISTS (
+                    SELECT * FROM {schema}.{table}
+                    WHERE login='{login}'
+                ); '''.format(schema=self.schema, table=self.auth_table, login=user,
+                              password=password, su=su, orgs=orgs_str)
+        else:
+            INSERT_STATEMENT = '''
+                INSERT INTO {schema}.{table} (login, password, su, orgs)
+                SELECT '{login}', '{password}', '{su}', '{orgs}'
+                WHERE NOT EXISTS (
+                    SELECT * FROM {schema}.{table} WHERE login='{login}' ); '''.format(schema=self.schema,
+                                                                                       table=self.auth_table,
+                                                                                       login=user,
+                                                                                       password=password, su=su,
+                                                                                       orgs=orgs_str)
         self.cursor.execute(INSERT_STATEMENT)
         self.conn.commit()

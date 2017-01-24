@@ -1,0 +1,1 @@
+from user import login_manager, user_loader

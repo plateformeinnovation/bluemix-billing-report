@@ -10,6 +10,7 @@
                 font-size: 180%;
                 color: #024457;
                 margin-top: 15px;
+                margin-bottom: 15px;
             }
             h1 span {
               color: #167F92;
@@ -30,9 +31,8 @@
             font-family: courier;
             font-size: 130%;
             }
-            a.pos_logout {
-            position: absolute;
-            right: 180px;
+            .pos_logout {
+            float: right;
             }
             div.pos_summary {
             position: relative;
@@ -141,7 +141,9 @@
                     {% elif flag == "history" %}
                     <a href="{{ url_for('report_user_rt', date_str='current') }}" class="btn btn-info" role="button">Return</a>
                     {% endif %}
+                    <div class="pos_logout">
                     <a href="{{ url_for('logout') }}" class="btn btn-warning pos_logout" role="button">Logout</a>
+                    </div>
                     {{content|safe}}
 
                 {% else %}
@@ -171,7 +173,9 @@
                     {% endif %}
 
                     <a href="{{ url_for('admin') }}" class="btn btn-success" role="button">Admin</a>
+                    <div class="pos_logout">
                     <a href="{{ url_for('logout') }}" class="btn btn-warning pos_logout" role="button">Logout</a>
+                    </div>
                     {{content|safe}}
                 {% endif %}
             </div>

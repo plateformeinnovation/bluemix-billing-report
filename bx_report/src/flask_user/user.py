@@ -2,7 +2,7 @@ import sys
 
 import flask_login
 
-from database import get_table
+from ..factory.get_table import get_table
 
 
 # User class inherits from flask_login.UserMixin
