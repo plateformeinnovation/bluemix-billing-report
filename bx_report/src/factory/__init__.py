@@ -11,19 +11,24 @@ ENV_BX_PW = 'BX_PASSWORD'
 ENV_BX_SLEEP = 'BX_SLEEP'
 VCAP = 'VCAP_SERVICES_COMPOSE_FOR_POSTGRESQL_0_CREDENTIALS_URI'
 
-if sys.argv[1].lower() == 'dev':
+DEV = False
+
+if len(sys.argv) > 1:
+    PORT = int(sys.argv[1])
+
+if len(sys.argv) > 2 and sys.argv[2] == 'dev':
     DEV = True
-else:
-    DEV = False
+
+if len(sys.argv) > 3 or len(sys.argv) == 1:
+    print sys.stderr, 'run.py port [dev]'
+    sys.exit(1)
 
 if DEV:
-    PORT = 5000
     with open('bx_report/src/resource/ENV_VARIABLE', 'r') as f:
         bx_login = f.readline().strip()
         bx_pw = f.readline().strip()
         sleep_time = float(f.readline().strip())
 else:
-    PORT = 80
     bx_login = os.environ[ENV_BX_LOGIN]
     bx_pw = os.environ[ENV_BX_PW]
     sleep_time = float(os.environ[ENV_BX_SLEEP])

@@ -18,7 +18,7 @@ RUN wget http://public.dhe.ibm.com/cloud/bluemix/cli/bluemix-cli/Bluemix_CLI_$BX
 WORKDIR ${BXREPORT_HOME}
 ADD . ${BXREPORT_HOME}
 RUN pip install -r requirements.txt
-RUN sed -n 2p resource/ENV_VARIABLE | xargs cf login -a https://api.eu-gb.bluemix.net -u frederic.duport@open-groupe.com -o cdo -s dev -p
+RUN sed -n 2p bx_report/src/resource/ENV_VARIABLE | xargs cf login -a https://api.eu-gb.bluemix.net -u frederic.duport@open-groupe.com -o cdo -s dev -p
 
 # default docker execution command
-CMD ["python","/opt/bluemix-report/run.py"]
+CMD ["python","/opt/bluemix-report/run.py","443","dev"]

@@ -146,12 +146,10 @@ def admin():
         if dict_post.has_key('delete'):
             user_to_delete = dict_post['delete']
             get_table().client._delete_user(user_to_delete)
-            # return flask.redirect(flask.url_for('admin'))
         elif dict_post.has_key('modify'):
             username = dict_post['login']
             pw = dict_post['modify']
             get_table().client._update_user_pw(username, pw)
-            # return flask.redirect(flask.url_for('admin'))
         elif dict_post.has_key('username'):
             username = dict_post['username']
             password = dict_post['password']
@@ -170,7 +168,6 @@ def admin():
             orgs = dict_post.keys()
             orgs.remove(user)
             get_table().client._update_user_orgs(user, orgs)
-            # return flask.redirect(flask.url_for('admin'))
 
     items = get_table().client._list_all_users()
     items = filter(lambda x: x[0] != 'admin', items)
