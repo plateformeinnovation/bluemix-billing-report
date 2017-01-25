@@ -1,6 +1,7 @@
 import logging
 import os
 import re
+import sys
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -10,7 +11,10 @@ ENV_BX_PW = 'BX_PASSWORD'
 ENV_BX_SLEEP = 'BX_SLEEP'
 VCAP = 'VCAP_SERVICES_COMPOSE_FOR_POSTGRESQL_0_CREDENTIALS_URI'
 
-DEV = True
+if sys.argv[1].lower() == 'dev':
+    DEV = True
+else:
+    DEV = False
 
 if DEV:
     PORT = 5000

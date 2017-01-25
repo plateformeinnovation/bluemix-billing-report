@@ -2,12 +2,12 @@
 
 import logging
 from datetime import date
-from flask_user import login_manager, user_loader
 
 import flask
 import flask_login
 
 from factory.get_table import get_table
+from flask_user import login_manager, user_loader
 from utils.Utilsdate import Utilsdate
 
 
@@ -173,7 +173,7 @@ def admin():
             # return flask.redirect(flask.url_for('admin'))
 
     items = get_table().client._list_all_users()
-    items = filter(lambda x: x[0]!='admin', items)
+    items = filter(lambda x: x[0] != 'admin', items)
     items = sorted(items, key=lambda x: x[0])
     table = get_table().admin_table(items)
     return flask.render_template('admin.html', content=table)
