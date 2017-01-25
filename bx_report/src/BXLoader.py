@@ -13,11 +13,7 @@ class BXLoader(DBConnection, InterfaceBillingMod):
 
     def __init__(self, host, port, user, password, dbname,
                  bx_login, bx_pw, schema='public', billing_table='billing',
-                 auth_table='authentication',
-                 api_uk="https://api.eu-gb.bluemix.net",
-                 api_us="https://api.ng.bluemix.net",
-                 api_au="https://api.au-syd.bluemix.net",
-                 beginning_date=None):
+                 auth_table='authentication', beginning_date=None):
 
         # call correspond __init__ method by mro (Method Resolution Order)
         super(BXLoader, self).__init__(host, port, user, password, dbname,
@@ -40,7 +36,7 @@ class BXLoader(DBConnection, InterfaceBillingMod):
                 CONSTRAINT billing_pkey PRIMARY KEY (region, organization, space, date)
             );""" % (self.schema, self.billing_table)
 
-        self.bx_tool = BXTool(bx_login, bx_pw, api_uk, api_us, api_au)
+        self.bx_tool = BXTool(bx_login, bx_pw)
 
         try:
             self._create_billing_table()

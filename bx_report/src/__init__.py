@@ -98,6 +98,7 @@ def __report_admin(su, date_str, summary):
     tables_category = '\n<h2 class="round">Consumption by organization/category</h2>\n'
     for organization in organizations:
         table_space = get_table().table_space(organization, date_str)
+        print table_space
         table_category = get_table().table_category(organization, date_str)
         if table_space:
             tables_space += '\n<h3>' + organization + '</h3>\n'

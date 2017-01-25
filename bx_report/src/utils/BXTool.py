@@ -3,9 +3,15 @@ import logging
 import os
 import subprocess
 
+from singleton import singleton
 
+
+@singleton
 class BXTool(object):
-    def __init__(self, bx_login, bx_pw, api_uk, api_us, api_au):
+    def __init__(self, bx_login, bx_pw,
+                 api_uk="https://api.eu-gb.bluemix.net",
+                 api_us="https://api.ng.bluemix.net",
+                 api_au="https://api.au-syd.bluemix.net"):
 
         self.logger = logging.getLogger(__name__)
 
@@ -19,7 +25,6 @@ class BXTool(object):
         self.connected_region = None
 
         self.all_orgs = None
-        self.get_orgs_list_all()
 
     def CFLogin(self, region, organization="moodpeek", space="dev"):
         if region == "uk":
@@ -49,6 +54,7 @@ class BXTool(object):
             organizations.extend(self.__get_orgs_list_current_region())
             self.all_orgs = list(set(organizations))
             self.logger.debug('all organizations: ' + str(self.all_orgs))
+        return self.all_orgs
 
     def __get_orgs_list_current_region(self):
 
