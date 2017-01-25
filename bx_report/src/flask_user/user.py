@@ -22,7 +22,7 @@ login_manager.login_view = 'login'
 # reload user when necessary
 @login_manager.user_loader
 def user_loader(email):
-    su = get_table().client.get_su(email)
+    su = get_table().client._verify_su(email)
     try:
         su = su[0][0]
     except IndexError:

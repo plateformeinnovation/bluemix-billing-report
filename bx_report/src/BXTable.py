@@ -1,4 +1,4 @@
-from .BluemixClient import BluemixClient
+from .BXClient import BluemixClient
 from flask_table import Col, create_table
 
 import logging
@@ -12,11 +12,11 @@ class BluemixTable(object):
 
         self.client = BluemixClient(host, port, user, password, dbname, 'public', 'billing', 'authentication')
 
-    def table(self, organization, date):
+    def table_detail(self, organization, date):
         row_list = list()
         sum_cost = 0
         for region in ['uk', 'us', 'au']:
-            rows_for_region = self.__generate_rows(region, organization, date)
+            rows_for_region = self.__detail_rows(region, organization, date)
             for row in rows_for_region:
                 sum_cost += row['cost']
             row_list.extend(rows_for_region)
@@ -38,37 +38,22 @@ class BluemixTable(object):
 
         return table.__html__()
 
-    def __generate_rows(self, region, organization, date):
+    def __detail_rows(self, region, organization, date_str):
         '''
-        generate rows (list of dict) to insert into the table
+        generate rows (list of dict) to insert into table
         :param region:
         :param organization:
-        :param date: in format like '2017-01' or 'history' for all
+        :param date_str: in format like '2017-01' or 'history' for all
         :return: a list of dict like
         [{'category': 'cloudantNoSQLDB', 'cost': 0.34, 'space': 'dev', 'usage': 255.0, 'organization': 'CDO', 'region': 'uk', 'unit': u'HOUR'}, {'category': 'applications', 'cost': 25.14, 'space': 'dev', 'usage': 477.87, 'organization': 'CDO', 'region': 'uk', 'unit': u'GB-HOURS'}]
         '''
-        space_list = self.client.get_spaces(region, organization, date)
+        return self.client.cost_detail_by_space_category(region, organization, date_str)
 
-        row_list = list()
-        for space in space_list:
-            space = space[0]
-            category_cost_detail = self.client.category_cost_detail(region, organization, space, date)
-            for category in category_cost_detail:
-                if category_cost_detail[category]['cost'] < 0.1:
-                    continue
-                row_dict = dict(region=region, space=space, category=category,
-                                unit=category_cost_detail[category]['unit'],
-                                usage=round(category_cost_detail[category]['quantity'], 2),
-                                cost=round(category_cost_detail[category]['cost'], 2))
-                row_list.append(row_dict)
-
-        return row_list
-
-    def table_space_sum(self, organization, date_str):
+    def table_space(self, organization, date_str):
         row_list = list()
         sum_cost = 0
         for region in ['uk', 'us', 'au']:
-            rows_for_region = self.__generate_summary_space_rows(region, organization, date_str)
+            rows_for_region = self.__space_rows(region, organization, date_str)
             for row in rows_for_region:
                 sum_cost += row['cost']
             row_list.extend(rows_for_region)
@@ -87,24 +72,14 @@ class BluemixTable(object):
 
         return table.__html__()
 
-    def __generate_summary_space_rows(self, region, organization, date_str):
-        space_list = self.client.get_spaces(region, organization, date_str)
+    def __space_rows(self, region, organization, date_str):
+        return self.client.cost_by_space(region, organization, date_str)
 
-        row_list = list()
-        for space in space_list:
-            space = space[0]
-            row_dict = dict(region=region, space=space)
-            row_dict['cost'] = round(self.client.space_cost(region, organization, space, date_str), 2)
-            if row_dict['cost'] > 0.01:
-                row_list.append(row_dict)
-
-        return row_list
-
-    def table_category_sum(self, organization, date_str):
+    def table_category(self, organization, date_str):
         row_list = list()
         sum_cost = 0
         for region in ['uk', 'us', 'au']:
-            rows_for_region = self.__generate_summary_category_rows(region, organization, date_str)
+            rows_for_region = self.__category_rows(region, organization, date_str)
             for row in rows_for_region:
                 sum_cost += row['cost']
             row_list.extend(rows_for_region)
@@ -123,46 +98,8 @@ class BluemixTable(object):
 
         return table.__html__()
 
-    def __generate_summary_category_rows(self, region, organization, date_str):
-        category_dict = dict()
-        for category in ['applications', 'containers', 'services']:
-            category_dict.update(self.client.category_cost(region, organization, category, date_str))
-
-        row_list = list()
-        for category in category_dict:
-            if category_dict[category] == 0:
-                continue
-            row_dict = dict(region=region, category=category)
-            row_dict['cost'] = round(category_dict[category], 2)
-            if row_dict['cost'] > 0.01:
-                row_list.append(row_dict)
-
-        return row_list
-
-    def __gen_checkbox(self, name, value, checked=False):
-        if checked:
-            checkbox = '''
-                <input type="checkbox" name="%s" value="%s" checked="checked"> %s<br>
-                ''' % (name, value, name)
-        else:
-            checkbox = '''
-                <input type="checkbox" name="%s" value="%s"> %s<br>
-                ''' % (name, value, name)
-        return checkbox
-
-    def __gen_checkbox_form(self, user, user_org, all_org):
-        if user:
-            checkbox_form = str('<form method="post">\n')
-            checkbox_form += '<input type="hidden" name="%s">\n' % user
-        else:
-            checkbox_form = str()
-
-        for org in all_org:
-            checkbox_form += self.__gen_checkbox(org, user, checked=True) \
-                if (org in user_org) and user else self.__gen_checkbox(org, user)
-        checkbox_form += '<input type="submit" value="%s">\n' % ('Submit' if user else 'Add')
-        checkbox_form += '</form>\n'
-        return checkbox_form
+    def __category_rows(self, region, organization, date_str):
+        return self.client.cost_by_category(region, organization, date_str)
 
     def admin_table(self, items):
         row_list = list()
@@ -207,3 +144,29 @@ class BluemixTable(object):
         table.classes = ['responstable']
 
         return table.__html__()
+
+    def __gen_checkbox(self, name, value, checked=False):
+        if checked:
+            checkbox = '''
+                <input type="checkbox" name="%s" value="%s" checked="checked"> %s<br>
+                ''' % (name, value, name)
+        else:
+            checkbox = '''
+                <input type="checkbox" name="%s" value="%s"> %s<br>
+                ''' % (name, value, name)
+        return checkbox
+
+    def __gen_checkbox_form(self, user, user_org, all_org):
+        if user:
+            checkbox_form = str('<form method="post">\n')
+            checkbox_form += '<input type="hidden" name="%s">\n' % user
+        else:
+            checkbox_form = str()
+
+        for org in all_org:
+            checkbox_form += self.__gen_checkbox(org, user, checked=True) \
+                if (org in user_org) and user else self.__gen_checkbox(org, user)
+        checkbox_form += '<input type="submit" value="%s">\n' % ('Submit' if user else 'Add')
+        checkbox_form += '</form>\n'
+        return checkbox_form
+

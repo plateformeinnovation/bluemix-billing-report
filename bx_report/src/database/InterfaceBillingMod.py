@@ -1,8 +1,12 @@
 from abc import ABCMeta, abstractmethod
 
-class InterfaceAuthMod(object):
+class InterfaceBillingMod(object):
     # metaclass: the class of a class
     __metaclass__ = ABCMeta
+
+    @abstractmethod
+    def _create_billing_table(self):
+        pass
 
     @abstractmethod
     def _check_existence(self, region, org, space, date):

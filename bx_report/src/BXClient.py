@@ -1,9 +1,11 @@
 import sys
 
-from bx_report.src.database.DBConnection import DBConnection
+from database import DBConnection
+from database import InterfaceAuth
+from database import InterfaceBillingRetrieve
 
 
-class BluemixClient(DBConnection):
+class BluemixClient(DBConnection, InterfaceAuth, InterfaceBillingRetrieve):
     '''
     Python inherits constructor(__init__) and destructor(__del__) directly !!!
     Here we overwrite __init__
@@ -26,21 +28,10 @@ class BluemixClient(DBConnection):
             );''' % (self.schema, self.auth_table)
 
         try:
-            self.__create_auth_table()
+            self._create_auth_table()
             self.__insert_admin()
         except:
             print >> sys.stderr, "create auth table error."
-
-    def __create_auth_table(self):
-        self.cursor.execute(self.CREATE_AUTH_TABLE_STATEMENT)
-        self.conn.commit()
-        self.logger.debug('Table {}.{} created.'.format(self.schema, self.auth_table))
-
-    def __insert_admin(self):
-        if self.bx_tool.all_orgs is None:
-            self.bx_tool.get_orgs_list_all()
-        self.insert_user('admin', 'admin', True, self.bx_tool.all_orgs)
-        self.logger.debug('User admin added.')
 
     def __get_records(self, region, org, *args):
         '''
@@ -86,18 +77,12 @@ class BluemixClient(DBConnection):
         self.cursor.execute(SELECT_STATEMENT)
         return self.cursor.fetchall()
 
-    def get_all_organizations(self):
-        SELECT_STATEMENT = self._select(
-            'organization', self.schema, self.billing_table, distinct=True)
-        self.cursor.execute(SELECT_STATEMENT)
-        return self.cursor.fetchall()
-
-    def get_spaces(self, region, org, date):
+    def __get_spaces(self, region, org, date_str):
         '''
         get all spaces of the region, organization
         :param region:
         :param org:
-        :param date: in format like '2017-01' or 'history' for all
+        :param date_str: in format like '2017-01' or 'history' for all
         :return: a list of spaces like [('preprod',), ('prod',),
         ('_openup',), ('devops',), ('dev',)]
         '''
@@ -111,13 +96,13 @@ class BluemixClient(DBConnection):
 
         LIST_SPACES = self._select(
             'space', self.schema, self.billing_table, distinct=True,
-            region=region, organization=org, date=date)
+            region=region, organization=org, date=date_str)
 
         self.cursor.execute(LIST_SPACES)
 
         return self.cursor.fetchall()
 
-    def space_cost(self, region, org, space, date_str):
+    def __sum_cost_for_space(self, region, org, space, date_str):
         '''
         get total cost(all categories) of a region, organization, space
         :param region:
@@ -150,7 +135,7 @@ class BluemixClient(DBConnection):
                             sum += sub_element["cost"]
             return sum
 
-    def category_cost(self, region, org, category, date_str):
+    def __sum_cost_for_category(self, region, org, category, date_str):
         '''
         get total cost(all spaces) of a region, organization, category
         :param region:
@@ -183,22 +168,22 @@ class BluemixClient(DBConnection):
                             res_dict[str(item)] = element[6][item]["cost"]
         return res_dict
 
-    def category_cost_detail(self, region, org, space, date):
+    def __cost_detail_by_category(self, region, org, space, date_str):
         '''
         for a region, organization, space, the detailed cost of
         applications, containers, or each services if the cost of them is not 0
         :param region:
         :param org:
         :param space:
-        :param date:
+        :param date_str:
         :return: a dict like
-        {'cloudantNoSQLDB': {u'cost': 0.7902999999999999, u'unit': u'GIGABYTE_OUTBOUND', u'quantity': 835},
-        'applications': {u'cost': 4.3730325, u'unit': None, u'quantity': 83.1375}}
+        {'cloudantNoSQLDB': {u'cost': 0.79, u'unit': u'GIGABYTE_OUTBOUND', u'quantity': 835},
+        'applications': {u'cost': 4.37, u'unit': None, u'quantity': 83.13}}
         '''
         res_dict = dict()
-        records = self.__get_records(region, org, space, date)
+        records = self.__get_records(region, org, space, date_str)
 
-        if date == "history":
+        if date_str == "history":
             for record in records:
                 if "applications" not in res_dict:
                     res_dict['applications'] = record[4]
@@ -230,7 +215,7 @@ class BluemixClient(DBConnection):
             return res_dict_non_zero
         else:
             if len(records) > 1:
-                raise Exception("factory storage exception.")
+                raise Exception("storage exception.")
             if records[0][4]['cost'] != 0:
                 res_dict['applications'] = records[0][4]
             if records[0][5]['cost'] != 0:
@@ -241,51 +226,80 @@ class BluemixClient(DBConnection):
                         res_dict[service] = records[0][6][service]
             return res_dict
 
-    def get_auth_info(self, login, password):
+    def get_all_organizations(self):
         SELECT_STATEMENT = self._select(
-            'su, orgs', self.schema, self.auth_table,
-            login=login, password=password)
+            'organization', self.schema, self.billing_table, distinct=True)
         self.cursor.execute(SELECT_STATEMENT)
         return self.cursor.fetchall()
 
-    def get_su(self, login):
-        SELECT_STATEMENT = self._select(
-            'su', self.schema, self.auth_table, login=login)
-        self.cursor.execute(SELECT_STATEMENT)
-        return self.cursor.fetchall()
+    def cost_by_space(self, region, org, date_str):
+        space_list = self.__get_spaces(region, org, date_str)
 
-    def list_all_users(self):
-        SELECT_STATEMENT = self._select(
-            'login, orgs', self.schema, self.auth_table)
-        self.cursor.execute(SELECT_STATEMENT)
-        return self.cursor.fetchall()
+        row_list = list()
+        for space in space_list:
+            space = space[0]
+            row_dict = dict(region=region, space=space)
+            row_dict['cost'] = round(self.__sum_cost_for_space(region, org, space, date_str), 2)
+            if row_dict['cost'] > 0.01:
+                row_list.append(row_dict)
 
-    def update_user_pw(self, user, pw):
-        UPDATE_STATEMENT = '''
-            UPDATE {}.{} SET password='{}' WHERE login='{}'
-            '''.format(self.schema, self.auth_table, pw, user)
-        self.cursor.execute(UPDATE_STATEMENT)
+        return row_list
+
+    def cost_by_category(self, region, org, date_str):
+        category_dict = dict()
+        for category in ['applications', 'containers', 'services']:
+            category_dict.update(self.__sum_cost_for_category(region, org, category, date_str))
+
+        row_list = list()
+        for category in category_dict:
+            if category_dict[category] == 0:
+                continue
+            row_dict = dict(region=region, category=category)
+            row_dict['cost'] = round(category_dict[category], 2)
+            if row_dict['cost'] > 0.01:
+                row_list.append(row_dict)
+
+        return row_list
+
+    def cost_detail_by_space_category(self, region, org, date_str):
+        '''
+        detailed consumption info of different spaces and categories
+        for a region, organization, date
+        :param region:
+        :param org:
+        :param date_str:
+        :return: a list of dict like
+        [{'category': 'cloudantNoSQLDB', 'cost': 0.34, 'space': 'dev', 'usage': 255.0, 'organization': 'CDO', 'region': 'uk', 'unit': u'HOUR'}, {'category': 'applications', 'cost': 25.14, 'space': 'dev', 'usage': 477.87, 'organization': 'CDO', 'region': 'uk', 'unit': u'GB-HOURS'}]
+        '''
+        space_list = self.__get_spaces(region, org, date_str)
+
+        row_list = list()
+        for space in space_list:
+            space = space[0]
+            space_cost_detail = self.__cost_detail_by_category(region, org, space, date_str)
+            for category in space_cost_detail:
+                if space_cost_detail[category]['cost'] < 0.1:
+                    continue
+                row_dict = dict(region=region, space=space, category=category,
+                                unit=space_cost_detail[category]['unit'],
+                                usage=round(space_cost_detail[category]['quantity'], 2),
+                                cost=round(space_cost_detail[category]['cost'], 2))
+                row_list.append(row_dict)
+
+        return row_list
+
+    def __insert_admin(self):
+        if self.bx_tool.all_orgs is None:
+            self.bx_tool.get_orgs_list_all()
+        self._insert_user('admin', 'admin', True, self.bx_tool.all_orgs)
+        self.logger.debug('User admin added.')
+
+    def _create_auth_table(self):
+        self.cursor.execute(self.CREATE_AUTH_TABLE_STATEMENT)
         self.conn.commit()
+        self.logger.debug('Table {}.{} created.'.format(self.schema, self.auth_table))
 
-    def update_user_orgs(self, user, orgs):
-        orgs_str = str()
-        for org in orgs:
-            orgs_str += '"' + org + '",'
-        orgs_str = orgs_str[:-1]
-        UPDATE_STATEMENT = '''
-            UPDATE %s.%s SET orgs='{%s}' WHERE login='%s'
-            ''' % (self.schema, self.auth_table, orgs_str, user)
-        self.cursor.execute(UPDATE_STATEMENT)
-        self.conn.commit()
-
-    def delete_user(self, user):
-        DELETE_STATEMENT = '''
-            DELETE FROM %s.%s WHERE login='%s'
-            ''' % (self.schema, self.auth_table, user)
-        self.cursor.execute(DELETE_STATEMENT)
-        self.conn.commit()
-
-    def insert_user(self, user, password, su, orgs):
+    def _insert_user(self, user, password, su, orgs):
         su = 'true' if su else 'false'
         orgs_str = str()
         for org in orgs:
@@ -314,3 +328,47 @@ class BluemixClient(DBConnection):
                                                                                        orgs=orgs_str)
         self.cursor.execute(INSERT_STATEMENT)
         self.conn.commit()
+
+    def _delete_user(self, user):
+        DELETE_STATEMENT = '''
+            DELETE FROM %s.%s WHERE login='%s'
+            ''' % (self.schema, self.auth_table, user)
+        self.cursor.execute(DELETE_STATEMENT)
+        self.conn.commit()
+
+    def _update_user_pw(self, user, pw):
+        UPDATE_STATEMENT = '''
+            UPDATE {}.{} SET password='{}' WHERE login='{}'
+            '''.format(self.schema, self.auth_table, pw, user)
+        self.cursor.execute(UPDATE_STATEMENT)
+        self.conn.commit()
+
+    def _update_user_orgs(self, user, orgs):
+        orgs_str = str()
+        for org in orgs:
+            orgs_str += '"' + org + '",'
+        orgs_str = orgs_str[:-1]
+        UPDATE_STATEMENT = '''
+            UPDATE %s.%s SET orgs='{%s}' WHERE login='%s'
+            ''' % (self.schema, self.auth_table, orgs_str, user)
+        self.cursor.execute(UPDATE_STATEMENT)
+        self.conn.commit()
+
+    def _authenticate(self, login, password):
+        SELECT_STATEMENT = self._select(
+            'su, orgs', self.schema, self.auth_table,
+            login=login, password=password)
+        self.cursor.execute(SELECT_STATEMENT)
+        return self.cursor.fetchone()
+
+    def _verify_su(self, login):
+        SELECT_STATEMENT = self._select(
+            'su', self.schema, self.auth_table, login=login)
+        self.cursor.execute(SELECT_STATEMENT)
+        return self.cursor.fetchall()
+
+    def _list_all_users(self):
+        SELECT_STATEMENT = self._select(
+            'login, orgs', self.schema, self.auth_table)
+        self.cursor.execute(SELECT_STATEMENT)
+        return self.cursor.fetchall()

@@ -33,14 +33,14 @@ def login():
 
         email = flask.request.form['email']
         password = flask.request.form['pw']
-        auth_info = get_table().client.get_auth_info(email, password)
+        auth_info = get_table().client._authenticate(email, password)
 
         if auth_info:  # successfully authenticated
             global current_date
             global organizations
             current_date = Utilsdate.stringnize_date(date.today())
-            organizations = auth_info[0][1]
-            if not auth_info[0][0]:  # normal user
+            organizations = auth_info[1]
+            if not auth_info[0]:  # normal user
                 user = user_loader(email)
                 flask_login.login_user(user)  # login created user
                 return flask.redirect(flask.url_for(
@@ -62,7 +62,7 @@ def __report(su, date_str):
     global organizations
     tables = '\n<h2 class="round">Consumption by organization/space/category</h2>\n'
     for organization in organizations:
-        table = get_table().table(organization, date_str)
+        table = get_table().table_detail(organization, date_str)
         if table:
             tables += '\n<h3>' + organization + '</h3>\n'
             tables += table
@@ -97,8 +97,8 @@ def __report_admin(su, date_str, summary):
     tables_space = '\n<h2 class="round">Consumption by organization/space</h2>\n'
     tables_category = '\n<h2 class="round">Consumption by organization/category</h2>\n'
     for organization in organizations:
-        table_space = get_table().table_space_sum(organization, date_str)
-        table_category = get_table().table_category_sum(organization, date_str)
+        table_space = get_table().table_space(organization, date_str)
+        table_category = get_table().table_category(organization, date_str)
         if table_space:
             tables_space += '\n<h3>' + organization + '</h3>\n'
             tables_space += table_space
@@ -145,12 +145,12 @@ def admin():
         dict_post = flask.request.form.to_dict()
         if dict_post.has_key('delete'):
             user_to_delete = dict_post['delete']
-            get_table().client.delete_user(user_to_delete)
+            get_table().client._delete_user(user_to_delete)
             # return flask.redirect(flask.url_for('admin'))
         elif dict_post.has_key('modify'):
             username = dict_post['login']
             pw = dict_post['modify']
-            get_table().client.update_user_pw(username, pw)
+            get_table().client._update_user_pw(username, pw)
             # return flask.redirect(flask.url_for('admin'))
         elif dict_post.has_key('username'):
             username = dict_post['username']
@@ -162,17 +162,17 @@ def admin():
             if su:
                 orgs.remove('su')
             if username and password:
-                get_table().client.insert_user(username, password, su, orgs)
+                get_table().client._insert_user(username, password, su, orgs)
         else:
             for item in dict_post:
                 if '@' in item:
                     user = item
             orgs = dict_post.keys()
             orgs.remove(user)
-            get_table().client.update_user_orgs(user, orgs)
+            get_table().client._update_user_orgs(user, orgs)
             # return flask.redirect(flask.url_for('admin'))
 
-    items = get_table().client.list_all_users()
+    items = get_table().client._list_all_users()
     items = filter(lambda x: x[0]!='admin', items)
     items = sorted(items, key=lambda x: x[0])
     table = get_table().admin_table(items)

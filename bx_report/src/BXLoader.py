@@ -2,12 +2,12 @@ import json
 import sys
 from datetime import date
 
-from bx_report.src.database import DBConnection, InterfaceAuthMod
+from bx_report.src.database import DBConnection, InterfaceBillingMod
 from bx_report.src.utils.BXTool import BXTool
 from utils.Utilsdate import Utilsdate
 
 
-class BXLoader(DBConnection, InterfaceAuthMod):
+class BXLoader(DBConnection, InterfaceBillingMod):
     # bound with class, like static variable in Java
     BEGINNING_DATE = date(2016, 1, 1)
 
@@ -43,16 +43,11 @@ class BXLoader(DBConnection, InterfaceAuthMod):
         self.bx_tool = BXTool(bx_login, bx_pw, api_uk, api_us, api_au)
 
         try:
-            self.__create_billing_table()
+            self._create_billing_table()
         except:
             print >> sys.stderr, "create billing table error."
 
     # inherits __del__ of superclass
-
-    def __create_billing_table(self):
-        self.cursor.execute(self.CREATE_BILLING_TABLE_STATEMENT)
-        self.conn.commit()
-        self.logger.debug('Table {}.{} created.'.format(self.schema, self.billing_table))
 
     def load_all_region(self, starting_date):
 
@@ -104,6 +99,11 @@ class BXLoader(DBConnection, InterfaceAuthMod):
             self.logger.info('Region {} loaded.'.format(self.bx_tool.connected_region))
         else:
             self.logger.info('Region {} already loaded, loading skipped.'.format(self.bx_tool.connected_region))
+
+    def _create_billing_table(self):
+        self.cursor.execute(self.CREATE_BILLING_TABLE_STATEMENT)
+        self.conn.commit()
+        self.logger.debug('Table {}.{} created.'.format(self.schema, self.billing_table))
 
     def _check_existence(self, region, org, space, date):
         SELECT_STATEMENT = self._select(

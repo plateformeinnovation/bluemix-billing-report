@@ -3,7 +3,7 @@ import threading
 import time
 
 from bx_report.src import app
-from bx_report.src.factory import sleep_time
+from bx_report.src.factory import sleep_time, PORT
 from bx_report.src.factory.get_loader import get_loader
 
 
@@ -31,4 +31,4 @@ loadingThread = LoadingThread(sleep_time)
 loadingThread.setDaemon(True)
 loadingThread.start()
 
-app.run('0.0.0.0', 5000)
+app.run('0.0.0.0', PORT)
