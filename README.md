@@ -1,4 +1,4 @@
-# Open Groupe Bluemix Billing Report Application
+# Open Groupe Bluemix Billing Report
 
 This is a web application developed on [Flask](https://github.com/pallets/flask) for Billing reporting of Bluemix platform for Open Groupe.
 
