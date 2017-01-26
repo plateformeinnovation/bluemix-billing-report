@@ -1,37 +1,13 @@
-import sys
-
 from database import DBConnection
 from database import InterfaceAuth
-from database import InterfaceBillingRetrieve
+from database import InterfaceBilling
 
 
-class BluemixClient(DBConnection, InterfaceAuth, InterfaceBillingRetrieve):
+class BluemixClient(DBConnection, InterfaceAuth, InterfaceBilling):
     '''
     Python inherits constructor(__init__) and destructor(__del__) directly !!!
     Here we overwrite __init__
     '''
-
-    def __init__(self, host, port, user, password, dbname,
-                 schema, billing_table, auth_table):
-
-        super(BluemixClient, self).__init__(
-            host, port, user, password, dbname,
-            schema, billing_table, auth_table)
-
-        self.CREATE_AUTH_TABLE_STATEMENT = '''
-            CREATE TABLE IF NOT EXISTS %s.%s(
-                login character varying NOT NULL,
-                password character varying,
-                su boolean,
-                orgs text[],
-                CONSTRAINT authentication_pkey PRIMARY KEY (login)
-            );''' % (self.schema, self.auth_table)
-
-        try:
-            self._create_auth_table()
-            self.__insert_admin()
-        except:
-            print >> sys.stderr, "create auth table error."
 
     def __get_records(self, region, org, *args):
         '''
@@ -287,17 +263,6 @@ class BluemixClient(DBConnection, InterfaceAuth, InterfaceBillingRetrieve):
                 row_list.append(row_dict)
 
         return row_list
-
-    def __insert_admin(self):
-        if self.bx_tool.all_orgs is None:
-            self.bx_tool.get_orgs_list_all()
-        self._insert_user('admin', 'admin', True, self.bx_tool.all_orgs)
-        self.logger.debug('User admin added.')
-
-    def _create_auth_table(self):
-        self.cursor.execute(self.CREATE_AUTH_TABLE_STATEMENT)
-        self.conn.commit()
-        self.logger.debug('Table {}.{} created.'.format(self.schema, self.auth_table))
 
     def _insert_user(self, user, password, su, orgs):
         su = 'true' if su else 'false'

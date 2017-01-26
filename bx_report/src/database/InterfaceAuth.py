@@ -5,10 +5,6 @@ class InterfaceAuth(object):
     __metaclass__ = ABCMeta
 
     @abstractmethod
-    def _create_auth_table(self):
-        pass
-
-    @abstractmethod
     def _insert_user(self, user, password, su, orgs):
         pass
 

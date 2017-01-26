@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 
-class InterfaceBillingRetrieve(object):
+class InterfaceBilling(object):
     __metaclass__ = ABCMeta
 
     @abstractmethod

@@ -3,14 +3,16 @@ from flask_table import Col, create_table
 
 import logging
 
-class BluemixTable(object):
+class BXTable(object):
     def __init__(self, host, port, dbname, user, password):
 
         self.logger = logging.getLogger(__name__)
 
         self.logger.debug('initializing BluemixTable.')
 
-        self.client = BluemixClient(host, port, user, password, dbname, 'public', 'billing', 'authentication')
+        self.client = BluemixClient(
+            host, port, user, password, dbname, 'public',
+            'billing','authentication')
 
     def table_detail(self, organization, date):
         row_list = list()

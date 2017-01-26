@@ -17,7 +17,7 @@ class DBConnection(object):
             self.conn = psycopg2.connect(
                 host=host, port=port, database=dbname, user=user, password=password)
             self.cursor = self.conn.cursor()
-            self.logger.debug('Database {} connected.'.format(dbname))
+            self.logger.debug('Postgres database {} connected.'.format(dbname))
         except:
             print >> sys.stderr, 'factory connection error.'
 

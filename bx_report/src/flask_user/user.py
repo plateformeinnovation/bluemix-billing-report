@@ -1,8 +1,8 @@
 import sys
 
-import flask_login
-
-from ..factory.get_table import get_table
+from bx_report.src.views import flask_login
+from bx_report.src.factory import get_table
+from bx_report.src import VCAP, bx_login, bx_pw
 
 
 # User class inherits from flask_login.UserMixin
@@ -22,7 +22,7 @@ login_manager.login_view = 'login'
 # reload user when necessary
 @login_manager.user_loader
 def user_loader(email):
-    su = get_table().client._verify_su(email)
+    su = get_table(VCAP).client._verify_su(email)
     try:
         su = su[0][0]
     except IndexError:

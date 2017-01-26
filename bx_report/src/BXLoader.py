@@ -36,12 +36,23 @@ class BXLoader(DBConnection, InterfaceBillingMod):
                 CONSTRAINT billing_pkey PRIMARY KEY (region, organization, space, date)
             );""" % (self.schema, self.billing_table)
 
+        self.CREATE_AUTH_TABLE_STATEMENT = '''
+            CREATE TABLE IF NOT EXISTS %s.%s(
+                login character varying NOT NULL,
+                password character varying,
+                su boolean,
+                orgs text[],
+                CONSTRAINT authentication_pkey PRIMARY KEY (login)
+            );''' % (self.schema, self.auth_table)
+
         self.bx_tool = BXTool(bx_login, bx_pw)
 
         try:
             self._create_billing_table()
+            self._create_auth_table()
+            self.__insert_admin()
         except:
-            print >> sys.stderr, "create billing table error."
+            print >> sys.stderr, "BXLoader init error."
 
     # inherits __del__ of superclass
 
@@ -100,6 +111,45 @@ class BXLoader(DBConnection, InterfaceBillingMod):
         self.cursor.execute(self.CREATE_BILLING_TABLE_STATEMENT)
         self.conn.commit()
         self.logger.debug('Table {}.{} created.'.format(self.schema, self.billing_table))
+
+    def _create_auth_table(self):
+        self.cursor.execute(self.CREATE_AUTH_TABLE_STATEMENT)
+        self.conn.commit()
+        self.logger.debug('Table {}.{} created.'.format(self.schema, self.auth_table))
+
+    def __insert_admin(self):
+        self._insert_user('admin', 'admin', True, self.bx_tool.get_orgs_list_all())
+        self.logger.debug('User admin added.')
+
+    def _insert_user(self, user, password, su, orgs):
+        su = 'true' if su else 'false'
+        orgs_str = str()
+        for org in orgs:
+            orgs_str += '"' + org + '",'
+        orgs_str = '{' + orgs_str[:-1] + '}'
+        if su == 'true':
+            INSERT_STATEMENT = '''
+                INSERT INTO {schema}.{table} (login, password, su, orgs)
+                SELECT '{login}', '{password}', '{su}', orgs
+                FROM {schema}.{table}
+                WHERE login='admin'
+                AND NOT EXISTS (
+                    SELECT * FROM {schema}.{table}
+                    WHERE login='{login}'
+                ); '''.format(schema=self.schema, table=self.auth_table, login=user,
+                              password=password, su=su, orgs=orgs_str)
+        else:
+            INSERT_STATEMENT = '''
+                INSERT INTO {schema}.{table} (login, password, su, orgs)
+                SELECT '{login}', '{password}', '{su}', '{orgs}'
+                WHERE NOT EXISTS (
+                    SELECT * FROM {schema}.{table} WHERE login='{login}' ); '''.format(schema=self.schema,
+                                                                                       table=self.auth_table,
+                                                                                       login=user,
+                                                                                       password=password, su=su,
+                                                                                       orgs=orgs_str)
+        self.cursor.execute(INSERT_STATEMENT)
+        self.conn.commit()
 
     def _check_existence(self, region, org, space, date):
         SELECT_STATEMENT = self._select(

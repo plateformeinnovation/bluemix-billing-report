@@ -25,6 +25,7 @@ class BXTool(object):
         self.connected_region = None
 
         self.all_orgs = None
+        self.get_orgs_list_all()
 
     def CFLogin(self, region, organization="moodpeek", space="dev"):
         if region == "uk":
@@ -53,7 +54,7 @@ class BXTool(object):
             self.CFLogin('au')
             organizations.extend(self.__get_orgs_list_current_region())
             self.all_orgs = list(set(organizations))
-            self.logger.debug('all organizations: ' + str(self.all_orgs))
+            self.logger.debug('all organizations set: ' + str(self.all_orgs))
         return self.all_orgs
 
     def __get_orgs_list_current_region(self):
