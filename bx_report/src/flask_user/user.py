@@ -1,8 +1,8 @@
 import sys
 
+from bx_report.src import VCAP
+from bx_report.src.factory.get_table import get_table
 from bx_report.src.views import flask_login
-from bx_report.src.factory import get_table
-from bx_report.src import VCAP, bx_login, bx_pw
 
 
 # User class inherits from flask_login.UserMixin

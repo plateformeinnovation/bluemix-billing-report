@@ -2,13 +2,14 @@
 import threading
 import time
 
+# while importing a module, execute __init__ in it firstly
 from bx_report.src import VCAP, bx_login, bx_pw, sleep_time, PORT, app
-from bx_report.src.factory import get_loader
+from bx_report.src.factory.get_loader import get_loader
 
 
 class LoadingThread(threading.Thread):
     '''
-    The thread to load consumption info into PostgreSQL
+    The thread to load consumption info from bx tool into PostgreSQL
     '''
 
     def __init__(self, VCAP, bx_login, bx_pw, sleep_time):
