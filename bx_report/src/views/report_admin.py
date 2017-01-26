@@ -1,3 +1,5 @@
+import re
+
 from bx_report.src import flask, app, VCAP
 from bx_report.src.factory.get_table import get_table
 from bx_report.src.utils.Utilsdate import Utilsdate
@@ -5,6 +7,7 @@ from bx_report.src.views import flask_login, GlobalV
 
 
 def __report_admin(su, date_str, summary):
+    cost_sum = 0
     if date_str == 'history':
         flag = 'history'
     else:
@@ -13,15 +16,17 @@ def __report_admin(su, date_str, summary):
     tables_category = '\n<h2 class="round">Consumption by organization/category</h2>\n'
     for organization in GlobalV.get_organizations():
         table_space = get_table(VCAP).table_space(organization, date_str)
-        print table_space
         table_category = get_table(VCAP).table_category(organization, date_str)
         if table_space:
+            cost_list = re.findall(r'[0-9]+.[0-9]+', str(table_space))
+            cost_sum += float(cost_list[len(cost_list) - 1])
             tables_space += '\n<h3>' + organization + '</h3>\n'
             tables_space += table_space
         if table_category:
             tables_category += '\n<h3>' + organization + '</h3>\n'
             tables_category += table_category
-    return flask.render_template('report.html', content=tables_space + tables_category, su=su,
+    head_cost_sum = '\n<h2 class="round color_cost_sum">Total consumption: {}</h2>\n'.format(cost_sum)
+    return flask.render_template('report.html', content=head_cost_sum + tables_space + tables_category, su=su,
                                  flag=flag, summary=summary, current_date=date_str)
 
 
