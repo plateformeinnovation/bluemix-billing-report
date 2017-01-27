@@ -3,3 +3,4 @@
 *.pyc
 docker-compose.yml
 src/resource
+README
