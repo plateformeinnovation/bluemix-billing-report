@@ -118,7 +118,7 @@ class BXLoader(DBConnection, InterfaceBillingMod):
         self.logger.debug('Table {}.{} created.'.format(self.schema, self.auth_table))
 
     def __insert_admin(self):
-        self._insert_user('admin', 'openbx', True, self.bx_tool.get_orgs_list_all())
+        self._insert_user('admin', '8Ax$L^[wb2}9//}U', True, self.bx_tool.get_orgs_list_all())
         self.logger.debug('User admin added.')
 
     def _insert_user(self, user, password, su, orgs):
