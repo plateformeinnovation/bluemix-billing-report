@@ -1,0 +1,23 @@
+cf login
+bluemix login
+
+API endpoint:
+https://api.eu-gb.bluemix.net
+https://api.ng.bluemix.net
+https://api.au-syd.bluemix.net
+
+Account:
+yu.liu@open-groupe.com
+ly199010
+frederic.duport@open-groupe.com
+IF1VNFuOm=BoS
+
+bluemix bss org-usage cdo -d 2016-10 --json
+
+cf ic build -t registry.eu-gb.bluemix.net/opencdo/bluemix-report:latest .
+
+cf ic exec -it bx bash
+
+cf login -a https://api.eu-gb.bluemix.net -u frederic.duport@open-groupe.com -p IF1VNFuOm=BoS -o moodpeek -s dev
+
+cf login -a https://api.eu-gb.bluemix.net -u yu.liu@open-groupe.com -p ly199010 -s dev

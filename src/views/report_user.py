@@ -1,7 +1,7 @@
 import re
 
 from src import flask, app, VCAP
-from src.factory.get_table import get_table
+from src.DIfactory.get_table import get_table
 from src.views import flask_login, GlobalV
 
 from src.utils.Utilsdate import Utilsdate

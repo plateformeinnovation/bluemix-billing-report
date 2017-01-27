@@ -9,7 +9,7 @@ class BluemixClient(DBConnection, InterfaceAuth, InterfaceBilling):
 
     def __get_records(self, region, org, *args):
         '''
-        Get records in factory for region, organization, [space], [date]
+        Get records in DIfactory for region, organization, [space], [date]
         :param region:
         :param org:
         :param args:
@@ -99,7 +99,7 @@ class BluemixClient(DBConnection, InterfaceAuth, InterfaceBilling):
             return sum
         else:
             if len(records) > 1:
-                raise Exception("factory storage exception.")
+                raise Exception("DIfactory storage exception.")
             for element in records[0]:
                 if isinstance(element, dict):
                     if "cost" in element:

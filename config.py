@@ -1,1 +1,1 @@
-SECRET_KEY = 'secret'
+SECRET_KEY = 'top_secret'

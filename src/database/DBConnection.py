@@ -19,7 +19,7 @@ class DBConnection(object):
             self.cursor = self.conn.cursor()
             self.logger.debug('Postgres database {} connected.'.format(dbname))
         except:
-            print >> sys.stderr, 'factory connection error.'
+            print >> sys.stderr, 'DIfactory connection error.'
 
     def __del__(self):
         self.conn.close()

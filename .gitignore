@@ -1,6 +1,6 @@
 .idea
 *.iml
 *.pyc
-docker-compose.yml
 src/resource
+memo
 README

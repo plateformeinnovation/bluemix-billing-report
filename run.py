@@ -3,7 +3,7 @@ import threading
 import time
 
 from src import VCAP, bx_login, bx_pw, sleep_time, PORT, app
-from src.factory.get_loader import get_loader
+from src.DIfactory.get_loader import get_loader
 
 
 class LoadingThread(threading.Thread):

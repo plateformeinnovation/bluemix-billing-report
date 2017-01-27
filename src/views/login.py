@@ -1,7 +1,7 @@
 from datetime import date
 
 from src import flask, app, VCAP
-from src.factory.get_table import get_table
+from src.DIfactory.get_table import get_table
 from src.flask_user.user import user_loader
 from src.views import flask_login, GlobalV
 

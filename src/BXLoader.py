@@ -69,7 +69,7 @@ class BXLoader(DBConnection, InterfaceBillingMod):
 
     def __load_current_region(self, beginning_date):
         '''
-        load billing info to factory for an organization of a region
+        load billing info to DIfactory for an organization of a region
         :param region:
         :param org:
         :param space:
