@@ -118,7 +118,7 @@ class BXLoader(DBConnection, InterfaceBillingMod):
         self.logger.debug('Table {}.{} created.'.format(self.schema, self.auth_table))
 
     def __insert_admin(self):
-        self._insert_user('admin', 'admin', True, self.bx_tool.get_orgs_list_all())
+        self._insert_user('admin', 'openbx', True, self.bx_tool.get_orgs_list_all())
         self.logger.debug('User admin added.')
 
     def _insert_user(self, user, password, su, orgs):
@@ -133,21 +133,19 @@ class BXLoader(DBConnection, InterfaceBillingMod):
                 SELECT '{login}', '{password}', '{su}', orgs
                 FROM {schema}.{table}
                 WHERE login='admin'
-                AND NOT EXISTS (
-                    SELECT * FROM {schema}.{table}
-                    WHERE login='{login}'
-                ); '''.format(schema=self.schema, table=self.auth_table, login=user,
+                ON CONFLICT (login) DO UPDATE SET
+                login=EXCLUDED.login, password=EXCLUDED.password,
+                su=EXCLUDED.su, orgs=EXCLUDED.orgs;
+                '''.format(schema=self.schema, table=self.auth_table, login=user,
                               password=password, su=su, orgs=orgs_str)
         else:
             INSERT_STATEMENT = '''
                 INSERT INTO {schema}.{table} (login, password, su, orgs)
                 SELECT '{login}', '{password}', '{su}', '{orgs}'
                 WHERE NOT EXISTS (
-                    SELECT * FROM {schema}.{table} WHERE login='{login}' ); '''.format(schema=self.schema,
-                                                                                       table=self.auth_table,
-                                                                                       login=user,
-                                                                                       password=password, su=su,
-                                                                                       orgs=orgs_str)
+                    SELECT * FROM {schema}.{table} WHERE login='{login}' );
+                    '''.format(schema=self.schema, table=self.auth_table,
+                               login=user, password=password, su=su, orgs=orgs_str)
         self.cursor.execute(INSERT_STATEMENT)
         self.conn.commit()
 
