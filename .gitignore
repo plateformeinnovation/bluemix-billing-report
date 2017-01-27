@@ -3,3 +3,4 @@
 *.pyc
 docker-compose.yml
 bx_report/src/resource
+README.md
