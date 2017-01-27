@@ -1,9 +1,8 @@
 import logging
 
-import flask
-
 from VCAP import retrieve_VCAP
-from bx_report.src.BXTable import BXTable
+from src import flask
+from src.BXTable import BXTable
 
 
 def get_table(VCAP):

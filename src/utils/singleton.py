@@ -31,7 +31,7 @@ def singleton(cls):
             key += (arg,)
         for kwarg_tuple in kwargs.items():
             key += kwarg_tuple
-        if cls not in instance:
+        if key not in instance:
             instance[key] = cls(*args, **kwargs)
 
         return instance[key]

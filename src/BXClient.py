@@ -1,6 +1,4 @@
-from database import DBConnection
-from database import InterfaceAuth
-from database import InterfaceBilling
+from src.database import DBConnection, InterfaceAuth, InterfaceBilling
 
 
 class BluemixClient(DBConnection, InterfaceAuth, InterfaceBilling):

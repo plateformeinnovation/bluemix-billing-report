@@ -2,9 +2,8 @@
 import threading
 import time
 
-# while importing a module, execute __init__ in it firstly
-from bx_report.src import VCAP, bx_login, bx_pw, sleep_time, PORT, app
-from bx_report.src.factory.get_loader import get_loader
+from src import VCAP, bx_login, bx_pw, sleep_time, PORT, app
+from src.factory.get_loader import get_loader
 
 
 class LoadingThread(threading.Thread):

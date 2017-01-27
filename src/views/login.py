@@ -1,10 +1,11 @@
 from datetime import date
 
-from bx_report.src import flask, app, VCAP
-from bx_report.src.factory.get_table import get_table
-from bx_report.src.flask_user import user_loader
-from bx_report.src.utils.Utilsdate import Utilsdate
-from bx_report.src.views import flask_login, GlobalV
+from src import flask, app, VCAP
+from src.factory.get_table import get_table
+from src.flask_user.user import user_loader
+from src.views import flask_login, GlobalV
+
+from src.utils.Utilsdate import Utilsdate
 
 
 # the route() decorator tells Flask what URL should trigger this function

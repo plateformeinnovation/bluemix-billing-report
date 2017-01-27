@@ -1,6 +1,7 @@
-from bx_report.src import VCAP, flask, app
-from bx_report.src.factory.get_table import get_table
-from bx_report.src.views import flask_login
+from src import VCAP, flask, app
+from src.factory.get_table import get_table
+
+from src.views import flask_login
 
 
 @app.route('/admin', methods=['GET', 'POST'])

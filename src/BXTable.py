@@ -1,7 +1,9 @@
-from .BXClient import BluemixClient
+import logging
+
 from flask_table import Col, create_table
 
-import logging
+from src.BXClient import BluemixClient
+
 
 class BXTable(object):
     def __init__(self, host, port, dbname, user, password):
@@ -12,7 +14,7 @@ class BXTable(object):
 
         self.client = BluemixClient(
             host, port, user, password, dbname, 'public',
-            'billing','authentication')
+            'billing', 'authentication')
 
     def table_detail(self, organization, date):
         row_list = list()
@@ -134,9 +136,11 @@ class BXTable(object):
 
         row_list.append(row_dict)
 
+
         class EscapedCol(Col):
             def td_format(self, content):
                 return content
+
 
         AdminTable = create_table() \
             .add_column('login', EscapedCol('login')) \
@@ -171,4 +175,3 @@ class BXTable(object):
         checkbox_form += '<input type="submit" value="%s">\n' % ('Submit' if user else 'Add')
         checkbox_form += '</form>\n'
         return checkbox_form
-
