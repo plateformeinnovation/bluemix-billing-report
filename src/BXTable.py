@@ -3,8 +3,10 @@ import logging
 from flask_table import Col, create_table
 
 from src.BXClient import BluemixClient
+from src.utils.singleton import singleton
 
 
+@singleton
 class BXTable(object):
     def __init__(self, host, port, dbname, user, password):
 
