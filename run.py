@@ -2,7 +2,7 @@
 import threading
 import time
 
-from src import VCAP, bx_login, bx_pw, sleep_time, PORT, app
+from src import VCAP, bx_login, bx_pw, sleep_time, PORT, app, logging
 from src.DIfactory.get_loader import get_loader
 
 
@@ -15,6 +15,8 @@ class LoadingThread(threading.Thread):
         # super object is a proxy object which delegates the methods of LoadingThread's super class
         super(LoadingThread, self).__init__()
 
+        self.logger = logging.getLogger(__name__)
+
         self.sleepTime = float(sleep_time)
 
         self.bluemix_loader = get_loader(VCAP, bx_login, bx_pw)
@@ -22,6 +24,7 @@ class LoadingThread(threading.Thread):
     def run(self):
         self.bluemix_loader.load_all_region(self.bluemix_loader.beginning_date)
         while True:
+            self.logger.info('laoding thread sleeping...')
             time.sleep(sleep_time)
             self.bluemix_loader.load_all_region(self.bluemix_loader.last_month_date())
 

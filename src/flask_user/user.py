@@ -1,6 +1,4 @@
-import sys
-
-from src import VCAP
+from src import VCAP, sys
 from src.DIfactory.get_table import get_table
 
 from src.views import flask_login
