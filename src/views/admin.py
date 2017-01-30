@@ -36,7 +36,7 @@ def admin():
             get_table(VCAP).client._update_user_orgs(user, orgs)
 
     items = get_table(VCAP).client._list_all_users()
-    items = filter(lambda x: x[0] != 'admin', items)
+    items = filter(lambda x: x[0] != 'frederic.duport@open-groupe.com', items)
     items = sorted(items, key=lambda x: x[0])
     table = get_table(VCAP).admin_table(items)
     return flask.render_template('admin.html', content=table)

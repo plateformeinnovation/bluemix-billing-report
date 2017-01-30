@@ -18,10 +18,9 @@ class Utilsdate:
 
     @staticmethod
     def previous_month_date(current_date):
-        day = current_date.day
         month = current_date.month - 1 if current_date.month != 1 else 12
         year = current_date.year if current_date.month != 1 else current_date.year - 1
-        return date(year, month, day)
+        return date(year, month, 1)
 
     @staticmethod
     def previous_month_str(date_str):

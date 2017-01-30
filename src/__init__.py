@@ -1,14 +1,12 @@
 # coding:utf-8
 
-import logging
 import os
 import sys
+import logging
 
 import flask
 
-
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 ENV_BX_LOGIN = 'BX_LOGIN'
 ENV_BX_PW = 'BX_PASSWORD'
@@ -22,6 +20,7 @@ if len(sys.argv) > 1:
 
 if len(sys.argv) > 2 and sys.argv[2] == 'dev':
     DEV = True
+    logging.basicConfig(level=logging.DEBUG)
 
 if len(sys.argv) > 3 or len(sys.argv) == 1:
     print sys.stderr, 'run.py port [dev]'

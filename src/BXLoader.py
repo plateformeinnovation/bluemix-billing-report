@@ -2,6 +2,7 @@ import json
 import sys
 from datetime import date
 
+from src import bx_login, bx_pw
 from src.database import DBConnection, InterfaceBillingMod
 from src.utils.BXTool import BXTool
 from src.utils.Utilsdate import Utilsdate
@@ -58,6 +59,7 @@ class BXLoader(DBConnection, InterfaceBillingMod):
 
     def load_all_region(self, starting_date):
 
+        self.logger.info('start loading billing information...')
         self.bx_tool.CFLogin('uk')
         self.__load_current_region(starting_date)
         self.bx_tool.CFLogin('us')
@@ -66,6 +68,7 @@ class BXLoader(DBConnection, InterfaceBillingMod):
         self.__load_current_region(starting_date)
 
         self.conn.commit()
+        self.logger.info('loading finished.')
 
     def __load_current_region(self, beginning_date):
         '''
@@ -118,7 +121,7 @@ class BXLoader(DBConnection, InterfaceBillingMod):
         self.logger.debug('Table {}.{} created.'.format(self.schema, self.auth_table))
 
     def __insert_admin(self):
-        self._insert_user('admin', '8Ax$L^[wb2}9//}U', True, self.bx_tool.get_orgs_list_all())
+        self._insert_user(bx_login, bx_pw, True, self.bx_tool.get_orgs_list_all())
         self.logger.debug('User admin added.')
 
     def _insert_user(self, user, password, su, orgs):
