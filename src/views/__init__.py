@@ -1,5 +1,3 @@
-import flask_login
-
 class GlobalV(object):
     current_date = None
     organizations = None

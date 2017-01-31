@@ -1,4 +1,4 @@
-from VCAP import retrieve_VCAP
+from .VCAP import retrieve_VCAP
 from src.BXTable import BXTable
 
 

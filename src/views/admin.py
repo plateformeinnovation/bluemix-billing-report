@@ -1,7 +1,8 @@
-from src import VCAP, flask, app
-from src.DIfactory.get_table import get_table
+import flask
+import flask_login
 
-from src.views import flask_login
+from src import VCAP, app
+from src.DIfactory.get_table import get_table
 
 
 @app.route('/admin', methods=['GET', 'POST'])

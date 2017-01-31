@@ -1,11 +1,13 @@
 from datetime import date
 
-from src import flask, app, VCAP
+import flask
+import flask_login
+
+from src import app, VCAP
 from src.DIfactory.get_table import get_table
 from src.flask_user.user import user_loader
-from src.views import flask_login, GlobalV
-
 from src.utils.Utilsdate import Utilsdate
+from src.views import GlobalV
 
 
 # the route() decorator tells Flask what URL should trigger this function

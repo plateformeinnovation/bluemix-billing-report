@@ -1,8 +1,9 @@
 #!/usr/bin/env python
+import logging
 import threading
 import time
 
-from src import VCAP, bx_login, bx_pw, sleep_time, PORT, app, logging
+from src import VCAP, bx_login, bx_pw, sleep_time, PORT, app
 from src.DIfactory.get_loader import get_loader
 
 

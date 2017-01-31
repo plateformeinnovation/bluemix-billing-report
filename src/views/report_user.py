@@ -1,10 +1,12 @@
 import re
 
-from src import flask, app, VCAP
-from src.DIfactory.get_table import get_table
-from src.views import flask_login, GlobalV
+import flask
+import flask_login
 
+from src import app, VCAP
+from src.DIfactory.get_table import get_table
 from src.utils.Utilsdate import Utilsdate
+from src.views import GlobalV
 
 
 def __report(su, date_str):

@@ -1,7 +1,9 @@
-from src import VCAP, sys
-from src.DIfactory.get_table import get_table
+import sys
 
-from src.views import flask_login
+import flask_login
+
+from src import VCAP
+from src.DIfactory.get_table import get_table
 
 
 # User class inherits from flask_login.UserMixin

@@ -1,10 +1,11 @@
 # coding:utf-8
 
+import logging
 import os
 import sys
-import logging
 
 import flask
+
 
 logging.basicConfig(level=logging.INFO)
 
