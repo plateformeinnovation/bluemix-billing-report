@@ -2,6 +2,8 @@
 
 This is a web application developed on [Flask](https://github.com/pallets/flask) for Billing reporting of Bluemix platform for Open Groupe.
 
+Application on Bluemix: [OPEN Bluemix Billing Report](https://open-bluemix-dashboard.eu-gb.mybluemix.net/)
+
 This repository is using for Continious Integration, every update will trigger a new build and deploy cycle in Bluemix Platform.
 
 ## Run & test application locally
