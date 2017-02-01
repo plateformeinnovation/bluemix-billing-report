@@ -8,6 +8,8 @@ import flask
 
 
 logging.basicConfig(level=logging.INFO)
+werkzeug_logger = logging.getLogger('werkzeug')
+werkzeug_logger.setLevel(logging.ERROR)
 
 ENV_BX_LOGIN = 'BX_LOGIN'
 ENV_BX_PW = 'BX_PASSWORD'
