@@ -1,6 +1,6 @@
 .idea
 *.iml
 *.pyc
-src/resource
+bx_report/resource
 memo
 README

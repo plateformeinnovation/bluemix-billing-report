@@ -1,5 +1,5 @@
-from .VCAP import retrieve_VCAP
-from src.BXTable import BXTable
+from VCAP import retrieve_VCAP
+from bx_report.BXTable import BXTable
 
 
 def get_table(VCAP):

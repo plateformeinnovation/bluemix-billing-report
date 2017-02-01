@@ -1,5 +1,5 @@
 from VCAP import retrieve_VCAP
-from src.BXLoader import BXLoader
+from bx_report.BXLoader import BXLoader
 
 
 def get_loader(VCAP, bx_login, bx_pw):

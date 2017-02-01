@@ -2,8 +2,8 @@ import logging
 
 from flask_table import Col, create_table
 
-from src.BXClient import BluemixClient
-from src.utils.singleton import singleton
+from bx_report.BXClient import BluemixClient
+from bx_report.utils.singleton import singleton
 
 
 @singleton

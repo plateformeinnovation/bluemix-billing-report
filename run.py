@@ -3,8 +3,9 @@ import logging
 import threading
 import time
 
-from src import VCAP, bx_login, bx_pw, sleep_time, PORT, app
-from src.DIfactory.get_loader import get_loader
+# register bx_report in sys.modules
+from bx_report import VCAP, bx_login, bx_pw, sleep_time, PORT, app
+from bx_report.DIfactory.get_loader import get_loader
 
 
 class LoadingThread(threading.Thread):

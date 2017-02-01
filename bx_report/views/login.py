@@ -3,11 +3,11 @@ from datetime import date
 import flask
 import flask_login
 
-from src import app, VCAP
-from src.DIfactory.get_table import get_table
-from src.flask_user.user import user_loader
-from src.utils.Utilsdate import Utilsdate
-from src.views import GlobalV
+from bx_report import app, VCAP
+from bx_report.DIfactory.get_table import get_table
+from bx_report.flask_user.user import user_loader
+from bx_report.utils.Utilsdate import Utilsdate
+from bx_report.views import GlobalV
 
 
 # the route() decorator tells Flask what URL should trigger this function

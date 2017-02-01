@@ -3,10 +3,10 @@ import re
 import flask
 import flask_login
 
-from src import app, VCAP
-from src.DIfactory.get_table import get_table
-from src.utils.Utilsdate import Utilsdate
-from src.views import GlobalV
+from bx_report import app, VCAP
+from bx_report.DIfactory.get_table import get_table
+from bx_report.utils.Utilsdate import Utilsdate
+from bx_report.views import GlobalV
 
 
 def __report(su, date_str):

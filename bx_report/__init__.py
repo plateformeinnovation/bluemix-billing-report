@@ -28,7 +28,7 @@ if len(sys.argv) > 3 or len(sys.argv) == 1:
     sys.exit(1)
 
 if DEV:
-    with open('src/resource/ENV_VARIABLE', 'r') as f:
+    with open('bx_report/resource/ENV_VARIABLE', 'r') as f:
         bx_login = f.readline().strip()
         bx_pw = f.readline().strip()
         sleep_time = float(f.readline().strip())
@@ -37,17 +37,24 @@ else:
     bx_pw = os.environ[ENV_BX_PW]
     sleep_time = float(os.environ[ENV_BX_SLEEP])
 
-from src.flask_user.user import login_manager
-
-
 # create a flask app
 app = flask.Flask(__name__)
 app.config.from_object('config')
 app.secret_key = app.config['SECRET_KEY']
 
+# Let the variable initialization finished, then we can use these variables
+# in others modules by proper imports
+
+# Register bx_report.flask_user, bx_report.flask_user.user
+# in sys.modules, so we have these modules in sys.modules from now on.
+#
+# bx_report has already been registered in previous run.py file
+from bx_report.flask_user.user import login_manager
+
+
 login_manager.init_app(app)
 
-from src.views import login
-from src.views import report_user
-from src.views import report_admin
-from src.views import admin
+from bx_report.views import login
+from bx_report.views import report_user
+from bx_report.views import report_admin
+from bx_report.views import admin

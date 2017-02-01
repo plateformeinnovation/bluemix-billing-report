@@ -2,10 +2,10 @@ import json
 import sys
 from datetime import date
 
-from src import bx_login, bx_pw
-from src.database import DBConnection, InterfaceBillingMod
-from src.utils.BXTool import BXTool
-from src.utils.Utilsdate import Utilsdate
+from bx_report import bx_login, bx_pw
+from bx_report.database import DBConnection, InterfaceBillingMod
+from bx_report.utils.BXTool import BXTool
+from bx_report.utils.Utilsdate import Utilsdate
 
 
 class BXLoader(DBConnection, InterfaceBillingMod):
