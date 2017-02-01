@@ -59,7 +59,7 @@ class BXLoader(DBConnection, InterfaceBillingMod):
 
     def load_all_region(self, starting_date):
 
-        self.logger.info('start loading billing information...')
+        self.logger.info('start loading billing information from bx...')
         self.bx_tool.CFLogin('uk')
         self.__load_current_region(starting_date)
         self.bx_tool.CFLogin('us')
@@ -81,6 +81,7 @@ class BXLoader(DBConnection, InterfaceBillingMod):
         '''
         if (self.bx_tool.connected_region and
                 (self.bx_tool.connected_region not in self.loaded_region)):
+            self.logger.info('loading {}...'.format(self.bx_tool.connected_region))
 
             report_date = date.today()
 
