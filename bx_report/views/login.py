@@ -1,4 +1,7 @@
+import smtplib
 from datetime import date
+from email.mime.text import MIMEText
+import subprocess
 
 import flask
 import flask_login
@@ -44,3 +47,26 @@ def login():
 def logout():
     flask_login.logout_user()
     return flask.redirect(flask.url_for('login'))
+
+
+@app.route('/forgotten', methods=['GET', 'POST'])
+def forgotten():
+    if flask.request.method == 'GET':
+        return flask.render_template('forgotten.html')
+
+    if flask.request.method == 'POST':
+        email = flask.request.form['email']
+        msg = MIMEText('Please reset password for {}.'.format(email))
+        sender = email.strip()
+        receiver = ['yu.liu003@gmail.com']
+        msg['Subject'] = 'OPEN Bluemix reporting platform - password reset demand.'
+        msg['From'] = email.strip()
+        msg['To'] = 'yu.liu003@gmail.com'
+        server = smtplib.SMTP('smtp.gmail.com:587')
+        server.ehlo()
+        server.starttls()
+        server.login('yu.liu003@gmail.com', 'password')
+        server.sendmail(sender, receiver, msg.as_string())
+        server.quit()
+        return flask.redirect(flask.url_for('login'))
+

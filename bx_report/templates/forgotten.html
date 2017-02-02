@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Bluemix reporting login screen</title>
+    <title>Bluemix reporting reset password</title>
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
     <style>
         .form .message {
@@ -19,13 +19,11 @@
 <body>
 <div class="wrapper">
     <div class="container">
-        <h1>OPEN</h1>
-        <h2>Bluemix Reporting</h2>
-        <form action="login" method="POST" class="form">
-            <input type="text" name="email" placeholder="Username">
-            <input type="password" name="pw" placeholder="Password">
-            <button type="submit" id="login-button" name="submit">Login</button>
-            <p class="message"><a href="{{ url_for('forgotten') }}">Forgot your password?</a></p>
+        <h1>Ask for resetting your password</h1>
+        <p>An email will be sent to administrator and you will receive<br />your new password as soon as possible in your mailbox.</p>
+        <form method="POST" class="form">
+            <input type="text" name="email" placeholder="Username(email address)">
+            <button type="submit" id="login-button" name="submit">Send</button>
         </form>
     </div>
     <ul class="bg-bubbles">
