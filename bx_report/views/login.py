@@ -54,17 +54,18 @@ def forgotten():
         return flask.render_template('forgotten.html')
 
     if flask.request.method == 'POST':
-        email = flask.request.form['email']
-        msg = MIMEText('Please reset password for {}.'.format(email))
-        sender = email.strip()
-        receiver = ['yu.liu003@gmail.com']
-        msg['Subject'] = 'OPEN Bluemix reporting platform - password reset demand.'
-        msg['From'] = email.strip()
-        msg['To'] = 'yu.liu003@gmail.com'
+        sender = 'openbluemix@gmail.com'
+        sender_pw = 'cba654321'
+        receiver = ['yu.liu@open-groupe.com']
+        user = flask.request.form['email'].strip()
+        msg = MIMEText('Please reset password for {}.'.format(user))
+        msg['Subject'] = 'OPEN Bluemix reporting platform - Password reset demand.'
+        msg['From'] = sender
+        msg['To'] = receiver[0]
         server = smtplib.SMTP('smtp.gmail.com:587')
         server.ehlo()
         server.starttls()
-        server.login('yu.liu003@gmail.com', 'password')
+        server.login(sender, sender_pw)
         server.sendmail(sender, receiver, msg.as_string())
         server.quit()
         return flask.redirect(flask.url_for('login'))
