@@ -59,7 +59,8 @@ class BXLoader(DBConnection, InterfaceBillingMod):
 
     def load_all_region(self, starting_date):
 
-        self.logger.info('start loading billing information from bx...')
+        self.logger.info('start loading billing information from bx from {}.'
+                         .format(Utilsdate.stringnize_date(starting_date)))
         self.bx_tool.CFLogin('uk')
         self.__load_current_region(starting_date)
         self.bx_tool.CFLogin('us')
@@ -72,7 +73,7 @@ class BXLoader(DBConnection, InterfaceBillingMod):
 
     def __load_current_region(self, beginning_date):
         '''
-        load billing info to DIfactory for an organization of a region
+        load billing info to PostgreSQL for an organization of a region
         :param region:
         :param org:
         :param space:
@@ -81,7 +82,9 @@ class BXLoader(DBConnection, InterfaceBillingMod):
         '''
         if (self.bx_tool.connected_region and
                 (self.bx_tool.connected_region not in self.loaded_region)):
-            self.logger.info('loading {}...'.format(self.bx_tool.connected_region))
+            self.logger.info('loading {} from {}.'
+                             .format(self.bx_tool.connected_region,
+                                     Utilsdate.stringnize_date(beginning_date)))
 
             report_date = date.today()
 
@@ -93,13 +96,13 @@ class BXLoader(DBConnection, InterfaceBillingMod):
                     if bill_records:
                         for record in bill_records:
                             if self._check_existence(record["region"], org, record["space"], record["date"]):
-                                if report_date.year == date.today().year and report_date.month == date.today().month:
-                                    self._update_record(record["region"], org, record["space"], record["date"],
-                                                        json.dumps(record["applications"]),
-                                                        json.dumps(record["containers"]),
-                                                        json.dumps(record["services"]))
-                                else:
-                                    break
+                                # if report_date.year == date.today().year and report_date.month == date.today().month:
+                                self._update_record(record["region"], org, record["space"], record["date"],
+                                                    json.dumps(record["applications"]),
+                                                    json.dumps(record["containers"]),
+                                                    json.dumps(record["services"]))
+                                # else:
+                                #     break
                             else:
                                 self._insert_record(record["region"], org, record["space"], record["date"],
                                                     json.dumps(record["applications"]),
@@ -141,7 +144,7 @@ class BXLoader(DBConnection, InterfaceBillingMod):
                 login=EXCLUDED.login, password=EXCLUDED.password,
                 su=EXCLUDED.su, orgs=EXCLUDED.orgs;
                 '''.format(schema=self.schema, table=self.auth_table, login=user,
-                              password=password, su=su, orgs=orgs_str)
+                           password=password, su=su, orgs=orgs_str)
         else:
             INSERT_STATEMENT = '''
                 INSERT INTO {schema}.{table} (login, password, su, orgs)

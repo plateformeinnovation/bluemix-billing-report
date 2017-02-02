@@ -9,7 +9,7 @@ from bx_report.DIfactory.get_loader import get_loader
 
 class LoadingProcess(multiprocessing.Process):
     '''
-    The thread to load consumption info from bx tool into PostgreSQL
+    The process to load billing info into PostgreSQL from bx tool
     '''
 
     def __init__(self, VCAP, bx_login, bx_pw, sleep_time):
@@ -31,10 +31,11 @@ class LoadingProcess(multiprocessing.Process):
 
 
 logging.info('CPU cores number: {}'.format(multiprocessing.cpu_count()))
+lock = multiprocessing.Lock()
 loadingProcess = LoadingProcess(VCAP, bx_login, bx_pw, sleep_time)
 loadingProcess.daemon = True
 loadingProcess.start()
-logging.info('main process on core: {}'.format(multiprocessing.current_process().ident))
-logging.info('loading child process on core: {}'.format(loadingProcess.ident))
+logging.info('main process: {}'.format(multiprocessing.current_process().ident))
+logging.info('child process (loading): {}'.format(loadingProcess.ident))
 
 app.run('0.0.0.0', PORT)
