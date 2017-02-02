@@ -35,4 +35,4 @@ loadingThread = LoadingThread(VCAP, bx_login, bx_pw, sleep_time)
 loadingThread.setDaemon(True)
 loadingThread.start()
 
-app.run('0.0.0.0', PORT)
+app.run('0.0.0.0', PORT, threaded=True)
