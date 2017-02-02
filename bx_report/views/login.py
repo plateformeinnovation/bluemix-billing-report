@@ -1,7 +1,6 @@
 import smtplib
 from datetime import date
 from email.mime.text import MIMEText
-import subprocess
 
 import flask
 import flask_login
@@ -69,4 +68,3 @@ def forgotten():
         server.sendmail(sender, receiver, msg.as_string())
         server.quit()
         return flask.redirect(flask.url_for('login'))
-
