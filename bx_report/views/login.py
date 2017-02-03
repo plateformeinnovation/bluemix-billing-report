@@ -56,7 +56,7 @@ def forgotten():
     if flask.request.method == 'POST':
         sender = 'openbluemix@gmail.com'
         sender_pw = 'cba654321'
-        receiver = ['yu.liu@open-groupe.com']
+        receiver = ['frederic.duport@open-groupe.com']
         user = flask.request.form['email'].strip()
         msg = MIMEText('Please reset password for {}.'.format(user))
         msg['Subject'] = 'OPEN Bluemix reporting platform - Password reset demand.'
