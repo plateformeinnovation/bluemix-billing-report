@@ -1,3 +1,5 @@
+import psycopg2
+
 from bx_report.database import DBConnection, InterfaceAuth, InterfaceBilling
 
 
@@ -321,7 +323,13 @@ class BluemixClient(DBConnection, InterfaceAuth, InterfaceBilling):
         SELECT_STATEMENT = self._select(
             'su, orgs', self.schema, self.auth_table,
             login=login, password=password)
-        self.cursor.execute(SELECT_STATEMENT)
+        try:
+            self.cursor.execute(SELECT_STATEMENT)
+        except psycopg2.OperationalError:
+            self.conn.close()
+            self._connect()
+        except psycopg2.InterfaceError:
+            self._connect()
         return self.cursor.fetchone()
 
     def _verify_su(self, login):

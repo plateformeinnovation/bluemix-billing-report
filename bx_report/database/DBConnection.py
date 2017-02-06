@@ -13,13 +13,22 @@ class DBConnection(object):
         self.billing_table = billing_table
         self.auth_table = auth_table
 
+        self.host = host
+        self.port = port
+        self.dbname = dbname
+        self.user = user
+        self.password = password
+
         try:
-            self.conn = psycopg2.connect(
-                host=host, port=port, database=dbname, user=user, password=password)
-            self.cursor = self.conn.cursor()
-            self.logger.debug('Postgres database {} connected.'.format(dbname))
+            self._connect()
         except:
             print >> sys.stderr, 'DIfactory connection error.'
+
+    def _connect(self):
+        self.conn = psycopg2.connect(
+            host=self.host, port=self.port, database=self.dbname, user=self.user, password=self.password)
+        self.cursor = self.conn.cursor()
+        self.logger.debug('Postgres database {} connected.'.format(self.dbname))
 
     def __del__(self):
         self.conn.close()
