@@ -52,24 +52,26 @@ class BXLoader(DBConnection, InterfaceBillingMod):
             self._create_billing_table()
             self._create_auth_table()
             self.__insert_admin()
+            self._disconnect()
         except:
             print >> sys.stderr, "BXLoader init error."
 
     # inherits __del__ of superclass
 
-    def load_all_region(self, starting_date):
-
+    def load_all_region(self, beginning_date):
+        self._connect()
         self.logger.info('start loading billing information from bx from {}.'
-                         .format(Utilsdate.stringnize_date(starting_date)))
+                         .format(Utilsdate.stringnize_date(beginning_date)))
         self.bx_tool.CFLogin('uk')
-        self.__load_current_region(starting_date)
+        self.__load_current_region(beginning_date)
         self.bx_tool.CFLogin('us')
-        self.__load_current_region(starting_date)
+        self.__load_current_region(beginning_date)
         self.bx_tool.CFLogin('au')
-        self.__load_current_region(starting_date)
+        self.__load_current_region(beginning_date)
 
         self.conn.commit()
         self.logger.info('loading finished.')
+        self._disconnect()
 
     def __load_current_region(self, beginning_date):
         '''
