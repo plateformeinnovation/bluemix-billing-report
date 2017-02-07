@@ -30,9 +30,12 @@ class DBConnection(object):
         self.cursor = self.conn.cursor()
         self.logger.debug('Postgres database {} connected.'.format(self.dbname))
 
-    def __del__(self):
+    def _disconnect(self):
         self.conn.close()
         self.logger.debug('Postgres database {} disconnected.')
+
+    def __del__(self):
+        self._disconnect()
 
     # protected method which can be inherited
     def _select(self, column, schema, table, distinct=False, **kwargs):
