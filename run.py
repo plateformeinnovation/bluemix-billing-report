@@ -5,6 +5,7 @@ import time
 
 from bx_report import VCAP, bx_login, bx_pw, sleep_time, PORT, app
 from bx_report.DIfactory.get_loader import get_loader
+from bx_report.utils.Utilsdate import Utilsdate
 
 
 class LoadingProcess(multiprocessing.Process):
@@ -27,7 +28,7 @@ class LoadingProcess(multiprocessing.Process):
         while True:
             self.logger.info('loading process sleeping...')
             time.sleep(sleep_time)
-            self.bluemix_loader.load_all_region(self.bluemix_loader.last_month_date())
+            self.bluemix_loader.load_all_region(Utilsdate.last_month_date())
 
 
 logging.info('CPU cores number: {}'.format(multiprocessing.cpu_count()))
