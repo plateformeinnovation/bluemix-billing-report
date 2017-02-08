@@ -71,6 +71,7 @@ class BXLoader(DBConnection, InterfaceBillingMod):
 
         self.conn.commit()
         self.logger.info('loading finished.')
+        self.loaded_region = []
         self._disconnect()
 
     def __load_current_region(self, beginning_date):
