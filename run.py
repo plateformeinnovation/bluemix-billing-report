@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import logging
 import multiprocessing
+import os
 import time
 
 from bx_report import VCAP, bx_login, bx_pw, sleep_time, PORT, app
@@ -26,7 +27,7 @@ class LoadingProcess(multiprocessing.Process):
     def run(self):
         self.bluemix_loader.load_all_region(self.bluemix_loader.beginning_date)
         while True:
-            self.logger.info('loading process sleeping...')
+            self.logger.info('loading process {} sleeping...'.format(os.getpid()))
             time.sleep(sleep_time)
             self.bluemix_loader.load_all_region(Utilsdate.last_month_date())
 
