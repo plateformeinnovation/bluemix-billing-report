@@ -7,7 +7,7 @@ import sys
 import flask
 
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
+logging.basicConfig(level=logging.INFO, filename='bx_report.log', format='%(asctime)s %(message)s')
 werkzeug_logger = logging.getLogger('werkzeug')
 werkzeug_logger.setLevel(logging.ERROR)
 
