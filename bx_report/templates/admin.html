@@ -32,9 +32,8 @@
             font-size: 130%;
             margin-top: 15px;
             }
-            a.pos_logout {
-            position: absolute;
-            right: 180px;
+            .pos_logout {
+            float: right;
             }
             div.pos_summary {
             position: relative;
@@ -126,7 +125,9 @@
             <div class="container">
                 <h1>User management</h1>
                     <a href="{{ url_for('report_admin_summary_rt', date_str='current') }}" class="btn btn-info" role="button">Return</a>
-                    <a href="{{ url_for('logout') }}" class="btn btn-warning pos_logout" role="button">logout</a>
+                    <div class="pos_logout">
+                    <a href="{{ url_for('logout') }}" class="btn btn-warning pos_logout" role="button">Logout</a>
+                    </div>
                     {{content|safe}}
             </div>
         </div>
