@@ -1,8 +1,8 @@
 # coding:utf-8
 
+import ctypes
 import logging
 import multiprocessing
-import ctypes
 import os
 import sys
 
@@ -46,7 +46,11 @@ app = flask.Flask(__name__)
 app.config.from_object('config')
 app.secret_key = app.config['SECRET_KEY']
 
-last_update_time = multiprocessing.Value(ctypes.c_char_p, 'Updating')
+# create a manager (another server process) to store our shared info
+server = multiprocessing.Manager()
+
+# shared memory on the server
+last_update_time = server.Value(unicode, 'Updating')
 lock = multiprocessing.Lock()
 
 # Let the variable initialization finished, then we can use these variables

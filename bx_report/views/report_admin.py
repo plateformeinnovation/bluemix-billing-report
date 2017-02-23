@@ -32,7 +32,6 @@ def __report_admin(su, date_str, summary):
         update_time_content = 'Information updating...' if last_update_time.value == 'Updating' else 'Last updated: ' + last_update_time.value
         update_time = '\n<h4 align="right">' + update_time_content + '</h4>'
     head_cost_sum = '\n<h2 class="round color_cost_sum margin_total">Total consumption: {}</h2>\n'.format(cost_sum)
-    print last_update_time.value
     return flask.render_template('report.html', content=update_time + head_cost_sum + tables_space + tables_category, su=su,
                                  flag=flag, summary=summary, current_date=date_str)
 
