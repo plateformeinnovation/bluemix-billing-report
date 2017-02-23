@@ -3,7 +3,7 @@ import re
 import flask
 import flask_login
 
-from bx_report import app, VCAP
+from bx_report import app, VCAP, last_update_time, lock
 from bx_report.DIfactory.get_table import get_table
 from bx_report.utils.Utilsdate import Utilsdate
 from bx_report.views import GlobalV
@@ -28,8 +28,12 @@ def __report_admin(su, date_str, summary):
         if table_category:
             tables_category += '\n<h3>' + organization + '</h3>\n'
             tables_category += table_category
-    head_cost_sum = '\n<h2 class="round color_cost_sum">Total consumption: {}</h2>\n'.format(cost_sum)
-    return flask.render_template('report.html', content=head_cost_sum + tables_space + tables_category, su=su,
+    with lock:
+        update_time_content = 'Information updating...' if last_update_time.value == 'Updating' else 'Last updated: ' + last_update_time.value
+        update_time = '\n<h4 align="right">' + update_time_content + '</h4>'
+    head_cost_sum = '\n<h2 class="round color_cost_sum margin_total">Total consumption: {}</h2>\n'.format(cost_sum)
+    print last_update_time.value
+    return flask.render_template('report.html', content=update_time + head_cost_sum + tables_space + tables_category, su=su,
                                  flag=flag, summary=summary, current_date=date_str)
 
 

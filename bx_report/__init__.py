@@ -1,6 +1,8 @@
 # coding:utf-8
 
 import logging
+import multiprocessing
+import ctypes
 import os
 import sys
 
@@ -43,6 +45,9 @@ else:
 app = flask.Flask(__name__)
 app.config.from_object('config')
 app.secret_key = app.config['SECRET_KEY']
+
+last_update_time = multiprocessing.Value(ctypes.c_char_p, 'Updating')
+lock = multiprocessing.Lock()
 
 # Let the variable initialization finished, then we can use these variables
 # in others modules by proper imports

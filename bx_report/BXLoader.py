@@ -1,6 +1,6 @@
 import json
 import sys
-from datetime import date
+from datetime import date, datetime
 
 from bx_report import bx_login, bx_pw
 from bx_report.database import DBConnection, InterfaceBillingMod
@@ -73,6 +73,8 @@ class BXLoader(DBConnection, InterfaceBillingMod):
         self.logger.info('loading finished.')
         self.loaded_region = []
         self._disconnect()
+
+        return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
     def __load_current_region(self, beginning_date):
         '''
