@@ -142,16 +142,16 @@
         <div class="wrapper">
             <div class="container">
                 {% if not su %}
-
-                    {% if flag == "rt" %}
+                    {% if current_date != "history" %}
                         <h1>Consumption details {{current_date}}</h1>
                         <a href="{{ url_for('details', date_str='previous') }}" class="btn btn-info" role="button"><</a>
                         <a href="{{ url_for('details', date_str='next') }}" class="btn btn-info" role="button">></a>
                         <a href="{{ url_for('details', date_str='history') }}" class="btn btn-primary" role="button">Σ</a>
-                    {% elif flag == "history" %}
+                    {% else %}
                         <h1>Total Consumption details</h1>
                         <a href="{{ url_for('details', date_str='current') }}" class="btn btn-info" role="button">Return</a>
                     {% endif %}
+
                     <div class="pos_logout">
                         <a href="{{ url_for('logout') }}" class="btn btn-warning pos_logout" role="button">Logout</a>
                     </div>
@@ -159,28 +159,27 @@
                     {{content|safe}}
 
                 {% else %}
-
-                    {% if flag == "rt" %}
+                    {% if current_date != "history" %}
                         {% if summary %}
-                        <h1>Consumption summary {{current_date}}</h1>
-                        <a href="{{ url_for('report_admin_summary_rt', date_str='previous') }}" class="btn btn-purple0" role="button"><</a>
-                        <a href="{{ url_for('report_admin_summary_rt', date_str='next') }}" class="btn btn-purple0" role="button">></a>
-                        <a href="{{ url_for('report_admin_summary_history') }}" class="btn btn-purple1" role="button">Σ</a>
-                        <a href="{{ url_for('details', date_str='current') }}" class="btn btn-primary" role="button">Details</a>
+                            <h1>Consumption summary {{current_date}}</h1>
+                            <a href="{{ url_for('summary', date_str='previous') }}" class="btn btn-purple0" role="button"><</a>
+                            <a href="{{ url_for('summary', date_str='next') }}" class="btn btn-purple0" role="button">></a>
+                            <a href="{{ url_for('summary', date_str='history') }}" class="btn btn-purple1" role="button">Σ</a>
+                            <a href="{{ url_for('details', date_str='current') }}" class="btn btn-primary" role="button">Details</a>
                         {% else %}
-                        <h1>Consumption details {{current_date}}</h1>
-                        <a href="{{ url_for('details', date_str='previous') }}" class="btn btn-info" role="button"><</a>
-                        <a href="{{ url_for('details', date_str='next') }}" class="btn btn-info" role="button">></a>
-                        <a href="{{ url_for('details', date_str='history') }}" class="btn btn-primary" role="button">Σ</a>
-                        <a href="{{ url_for('report_admin_summary_rt', date_str='current') }}" class="btn btn-purple1" role="button">Summary</a>
+                            <h1>Consumption details {{current_date}}</h1>
+                            <a href="{{ url_for('details', date_str='previous') }}" class="btn btn-info" role="button"><</a>
+                            <a href="{{ url_for('details', date_str='next') }}" class="btn btn-info" role="button">></a>
+                            <a href="{{ url_for('details', date_str='history') }}" class="btn btn-primary" role="button">Σ</a>
+                            <a href="{{ url_for('summary', date_str='current') }}" class="btn btn-purple1" role="button">Summary</a>
                         {% endif %}
-                    {% elif flag == "history" %}
+                    {% else %}
                         {% if summary %}
-                        <h1>Consumption summary Total</h1>
-                        <a href="{{ url_for('report_admin_summary_rt', date_str='current') }}" class="btn btn-purple0" role="button">Return</a>
+                            <h1>Consumption summary Total</h1>
+                            <a href="{{ url_for('summary', date_str='current') }}" class="btn btn-purple0" role="button">Return</a>
                         {% else %}
-                        <h1>Consumption details Total</h1>
-                        <a href="{{ url_for('details', date_str='current') }}" class="btn btn-info" role="button">Return</a>
+                            <h1>Consumption details Total</h1>
+                            <a href="{{ url_for('details', date_str='current') }}" class="btn btn-info" role="button">Return</a>
                         {% endif %}
                     {% endif %}
 

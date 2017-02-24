@@ -17,7 +17,6 @@ def __report_details(su, date_str):
     :return:
     '''
     cost_sum = 0
-    flag = date_str if date_str == 'history' else 'rt'
     tables = '\n<h2 class="round">Consumption by organization/space/category</h2>\n'
     for organization in UserSession.get_organizations():
         table = get_table(VCAP).table_detail(organization, date_str)
@@ -34,7 +33,7 @@ def __report_details(su, date_str):
     head_cost_sum = '\n<h2 class="round color_cost_sum margin_total">Total consumption: {}</h2>\n'\
         .format(cost_sum)
     return flask.render_template('report.html', content=update_time + head_cost_sum + tables,
-                                 su=su, flag=flag, current_date=date_str)
+                                 su=su, current_date=date_str)
 
 
 @app.route('/details/<date_str>')

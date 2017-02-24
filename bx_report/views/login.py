@@ -37,7 +37,7 @@ def login():
                 user = user_loader(email)
                 flask_login.login_user(user)
                 return flask.redirect(flask.url_for(
-                    'report_admin_summary_rt', date_str='current'))
+                    'summary', date_str='current'))
 
         return 'Bad login'
 

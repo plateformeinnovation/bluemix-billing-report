@@ -9,12 +9,8 @@ from bx_report.utils.Utilsdate import Utilsdate
 from bx_report.views import UserSession
 
 
-def __report_admin(su, date_str, summary):
+def __report_summary(su, date_str):
     cost_sum = 0
-    if date_str == 'history':
-        flag = 'history'
-    else:
-        flag = 'rt'
     tables_space = '\n<h2 class="round">Consumption by organization/space</h2>\n'
     tables_category = '\n<h2 class="round">Consumption by organization/category</h2>\n'
     for organization in UserSession.get_organizations():
@@ -33,12 +29,14 @@ def __report_admin(su, date_str, summary):
         update_time = '\n<h4 align="right">' + update_time_content + '</h4>'
     head_cost_sum = '\n<h2 class="round color_cost_sum margin_total">Total consumption: {}</h2>\n'.format(cost_sum)
     return flask.render_template('report.html', content=update_time + head_cost_sum + tables_space + tables_category, su=su,
-                                 flag=flag, summary=summary, current_date=date_str)
+                                 summary=True, current_date=date_str)
 
 
-@app.route('/report_admin_summary_rt/<date_str>')
+@app.route('/summary/<date_str>')
 @flask_login.login_required
-def report_admin_summary_rt(date_str):
+def summary(date_str):
+    if date_str == 'history':
+        return __report_summary(flask_login.current_user.getSu(), 'history')
     current_date = UserSession.get_current_date()
     if date_str == 'previous':
         current_date = Utilsdate.previous_month_str(current_date)
@@ -46,22 +44,4 @@ def report_admin_summary_rt(date_str):
     if date_str == 'next':
         current_date = Utilsdate.next_month_str(current_date)
         UserSession.set_current_date(current_date)
-    return __report_admin(flask_login.current_user.getSu(), current_date, True)
-
-
-@app.route('/report_admin_summary_history')
-@flask_login.login_required
-def report_admin_summary_history():
-    return __report_admin(flask_login.current_user.getSu(), 'history', True)
-
-
-@app.route('/report_admin_rt')
-@flask_login.login_required
-def report_admin_rt():
-    return __report_admin(flask_login.current_user.getSu(), 'rt', False)
-
-
-@app.route('/report_admin_history')
-@flask_login.login_required
-def report_admin_history():
-    return __report_admin(flask_login.current_user.getSu(), 'history', False)
+    return __report_summary(flask_login.current_user.getSu(), current_date)
