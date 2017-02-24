@@ -9,7 +9,7 @@ from bx_report import app, VCAP
 from bx_report.DIfactory.get_table import get_table
 from bx_report.flask_user.user import user_loader
 from bx_report.utils.Utilsdate import Utilsdate
-from bx_report.views import GlobalV
+from bx_report.views import UserSession
 
 
 # the route() decorator tells Flask what URL should trigger this function
@@ -26,13 +26,13 @@ def login():
         auth_info = get_table(VCAP).client._authenticate(email, password)
 
         if auth_info:  # successfully authenticated
-            GlobalV.set_current_date(Utilsdate.stringnize_date(date.today()))
-            GlobalV.set_organizations(auth_info[1])
+            UserSession.set_current_date(Utilsdate.stringnize_date(date.today()))
+            UserSession.set_organizations(auth_info[1])
             if not auth_info[0]:  # normal user
                 user = user_loader(email)
                 flask_login.login_user(user)  # login created user
                 return flask.redirect(flask.url_for(
-                    'report_user_rt', date_str='current'))
+                    'details', date_str='current'))
             else:  # super user
                 user = user_loader(email)
                 flask_login.login_user(user)

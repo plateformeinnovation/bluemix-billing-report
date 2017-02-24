@@ -66,6 +66,6 @@ from bx_report.flask_user.user import login_manager
 login_manager.init_app(app)
 
 from bx_report.views import login
-from bx_report.views import report_user
+from bx_report.views import details
 from bx_report.views import report_admin
 from bx_report.views import admin

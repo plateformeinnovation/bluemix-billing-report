@@ -144,20 +144,18 @@
                 {% if not su %}
 
                     {% if flag == "rt" %}
-                    <h1>Consumption details {{current_date}}</h1>
+                        <h1>Consumption details {{current_date}}</h1>
+                        <a href="{{ url_for('details', date_str='previous') }}" class="btn btn-info" role="button"><</a>
+                        <a href="{{ url_for('details', date_str='next') }}" class="btn btn-info" role="button">></a>
+                        <a href="{{ url_for('details', date_str='history') }}" class="btn btn-primary" role="button">Σ</a>
                     {% elif flag == "history" %}
-                    <h1>Total Consumption details</h1>
-                    {% endif %}
-                    {% if flag == "rt" %}
-                    <a href="{{ url_for('report_user_rt', date_str='previous') }}" class="btn btn-info" role="button"><</a>
-                    <a href="{{ url_for('report_user_rt', date_str='next') }}" class="btn btn-info" role="button">></a>
-                    <a href="{{ url_for('report_user_history') }}" class="btn btn-primary" role="button">Σ</a>
-                    {% elif flag == "history" %}
-                    <a href="{{ url_for('report_user_rt', date_str='current') }}" class="btn btn-info" role="button">Return</a>
+                        <h1>Total Consumption details</h1>
+                        <a href="{{ url_for('details', date_str='current') }}" class="btn btn-info" role="button">Return</a>
                     {% endif %}
                     <div class="pos_logout">
-                    <a href="{{ url_for('logout') }}" class="btn btn-warning pos_logout" role="button">Logout</a>
+                        <a href="{{ url_for('logout') }}" class="btn btn-warning pos_logout" role="button">Logout</a>
                     </div>
+
                     {{content|safe}}
 
                 {% else %}
@@ -168,12 +166,12 @@
                         <a href="{{ url_for('report_admin_summary_rt', date_str='previous') }}" class="btn btn-purple0" role="button"><</a>
                         <a href="{{ url_for('report_admin_summary_rt', date_str='next') }}" class="btn btn-purple0" role="button">></a>
                         <a href="{{ url_for('report_admin_summary_history') }}" class="btn btn-purple1" role="button">Σ</a>
-                        <a href="{{ url_for('report_user_rt', date_str='current') }}" class="btn btn-primary" role="button">Details</a>
+                        <a href="{{ url_for('details', date_str='current') }}" class="btn btn-primary" role="button">Details</a>
                         {% else %}
                         <h1>Consumption details {{current_date}}</h1>
-                        <a href="{{ url_for('report_user_rt', date_str='previous') }}" class="btn btn-info" role="button"><</a>
-                        <a href="{{ url_for('report_user_rt', date_str='next') }}" class="btn btn-info" role="button">></a>
-                        <a href="{{ url_for('report_user_history') }}" class="btn btn-primary" role="button">Σ</a>
+                        <a href="{{ url_for('details', date_str='previous') }}" class="btn btn-info" role="button"><</a>
+                        <a href="{{ url_for('details', date_str='next') }}" class="btn btn-info" role="button">></a>
+                        <a href="{{ url_for('details', date_str='history') }}" class="btn btn-primary" role="button">Σ</a>
                         <a href="{{ url_for('report_admin_summary_rt', date_str='current') }}" class="btn btn-purple1" role="button">Summary</a>
                         {% endif %}
                     {% elif flag == "history" %}
@@ -182,15 +180,18 @@
                         <a href="{{ url_for('report_admin_summary_rt', date_str='current') }}" class="btn btn-purple0" role="button">Return</a>
                         {% else %}
                         <h1>Consumption details Total</h1>
-                        <a href="{{ url_for('report_user_rt', date_str='current') }}" class="btn btn-info" role="button">Return</a>
+                        <a href="{{ url_for('details', date_str='current') }}" class="btn btn-info" role="button">Return</a>
                         {% endif %}
                     {% endif %}
 
                     <a href="{{ url_for('admin') }}" class="btn btn-success" role="button">Admin</a>
+
                     <div class="pos_logout">
-                    <a href="{{ url_for('logout') }}" class="btn btn-warning pos_logout" role="button">Logout</a>
+                        <a href="{{ url_for('logout') }}" class="btn btn-warning pos_logout" role="button">Logout</a>
                     </div>
+
                     {{content|safe}}
+
                 {% endif %}
             </div>
         </div>

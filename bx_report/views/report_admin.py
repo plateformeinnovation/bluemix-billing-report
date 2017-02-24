@@ -6,7 +6,7 @@ import flask_login
 from bx_report import app, VCAP, last_update_time, lock
 from bx_report.DIfactory.get_table import get_table
 from bx_report.utils.Utilsdate import Utilsdate
-from bx_report.views import GlobalV
+from bx_report.views import UserSession
 
 
 def __report_admin(su, date_str, summary):
@@ -17,7 +17,7 @@ def __report_admin(su, date_str, summary):
         flag = 'rt'
     tables_space = '\n<h2 class="round">Consumption by organization/space</h2>\n'
     tables_category = '\n<h2 class="round">Consumption by organization/category</h2>\n'
-    for organization in GlobalV.get_organizations():
+    for organization in UserSession.get_organizations():
         table_space = get_table(VCAP).table_space(organization, date_str)
         table_category = get_table(VCAP).table_category(organization, date_str)
         if table_space:
@@ -39,13 +39,13 @@ def __report_admin(su, date_str, summary):
 @app.route('/report_admin_summary_rt/<date_str>')
 @flask_login.login_required
 def report_admin_summary_rt(date_str):
-    current_date = GlobalV.get_current_date()
+    current_date = UserSession.get_current_date()
     if date_str == 'previous':
         current_date = Utilsdate.previous_month_str(current_date)
-        GlobalV.set_current_date(current_date)
+        UserSession.set_current_date(current_date)
     if date_str == 'next':
         current_date = Utilsdate.next_month_str(current_date)
-        GlobalV.set_current_date(current_date)
+        UserSession.set_current_date(current_date)
     return __report_admin(flask_login.current_user.getSu(), current_date, True)
 
 
