@@ -16,8 +16,12 @@ RUN wget http://public.dhe.ibm.com/cloud/bluemix/cli/bluemix-cli/Bluemix_CLI_$BX
 
 # indicate the working directory for RUN, CMD, ENTRYPOINT
 WORKDIR ${BXREPORT_HOME}
+
+# copy files to Docker
 ADD . ${BXREPORT_HOME}
+
 RUN pip install -r requirements.txt
+RUN chmod +x run.py
 
 # default docker execution command
-CMD ["python","/opt/bluemix-report/run.py","80"]
+CMD ["./run.py","80"]

@@ -1,6 +1,7 @@
 .idea
 *.iml
 *.pyc
+*.swp
 bx_report/resource
 memo
 bx_report.log

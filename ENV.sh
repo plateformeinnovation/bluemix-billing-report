@@ -7,5 +7,5 @@ export VCAP_SERVICES_COMPOSE_FOR_POSTGRESQL_0_CREDENTIALS_URI='postgres://login:
 export BX_LOGIN=''
 export BX_PASSWORD=''
 
-# time interval for loading database
-export BX_SLEEP=43200
+# time interval for database re-loading
+export BX_SLEEP=21600
