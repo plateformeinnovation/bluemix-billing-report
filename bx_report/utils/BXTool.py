@@ -12,7 +12,8 @@ class BXTool(object):
     def __init__(self, bx_login, bx_pw,
                  api_uk="https://api.eu-gb.bluemix.net",
                  api_us="https://api.ng.bluemix.net",
-                 api_au="https://api.au-syd.bluemix.net"):
+                 api_au="https://api.au-syd.bluemix.net",
+                 api_de="https://api.eu-de.bluemix.net"):
 
         self.logger = logging.getLogger(__name__)
 
@@ -22,6 +23,7 @@ class BXTool(object):
         self.api_uk = api_uk
         self.api_us = api_us
         self.api_au = api_au
+        self.api_de = api_de
 
         self.connected_region = None
 
@@ -41,6 +43,10 @@ class BXTool(object):
         elif region == "au":
             region = self.api_au
             self.connected_region = "au"
+        elif region == 'de':
+            region = self.api_de
+            self.connected_region = 'de'
+            organization = 'CDO'
         else:
             raise ValueError("api should be: uk, us, or au.")
             sys.exit(1)

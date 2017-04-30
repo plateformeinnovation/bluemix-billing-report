@@ -69,6 +69,8 @@ class BXLoader(DBConnection, InterfaceBillingMod):
         self.__load_current_region(beginning_date)
         self.bx_tool.CFLogin('au')
         self.__load_current_region(beginning_date)
+        self.bx_tool.CFLogin('de')
+        self.__load_current_region(beginning_date)
 
         self.conn.commit()
         self.logger.info('loading finished.')
@@ -79,11 +81,9 @@ class BXLoader(DBConnection, InterfaceBillingMod):
 
     def __load_current_region(self, beginning_date):
         '''
-        load billing info to PostgreSQL for an organization of a region
-        :param region:
-        :param org:
-        :param space:
-        :param beginning_date:
+        load billing information from bx cli to PostgreSQL
+        for current connected region
+        :param beginning_date: starting date
         :return:
         '''
         if (self.bx_tool.connected_region and
@@ -99,21 +99,17 @@ class BXLoader(DBConnection, InterfaceBillingMod):
                 org_list = self.bx_tool.get_orgs_list_by_date(report_date_str)
                 for org in org_list:
                     bill_records = self.bx_tool.retrieve_records(org, report_date_str)
-                    if bill_records:
-                        for record in bill_records:
-                            if self._check_existence(record["region"], org, record["space"], record["date"]):
-                                # if report_date.year == date.today().year and report_date.month == date.today().month:
-                                self._update_record(record["region"], org, record["space"], record["date"],
-                                                    json.dumps(record["applications"]),
-                                                    json.dumps(record["containers"]),
-                                                    json.dumps(record["services"]))
-                                # else:
-                                #     break
-                            else:
-                                self._insert_record(record["region"], org, record["space"], record["date"],
-                                                    json.dumps(record["applications"]),
-                                                    json.dumps(record["containers"]),
-                                                    json.dumps(record["services"]))
+                    for record in bill_records:
+                        if self._check_existence(record["region"], org, record["space"], record["date"]):
+                            self._update_record(record["region"], org, record["space"], record["date"],
+                                                json.dumps(record["applications"]),
+                                                json.dumps(record["containers"]),
+                                                json.dumps(record["services"]))
+                        else:
+                            self._insert_record(record["region"], org, record["space"], record["date"],
+                                                json.dumps(record["applications"]),
+                                                json.dumps(record["containers"]),
+                                                json.dumps(record["services"]))
                 report_date = Utilsdate.previous_month_date(report_date)
             self.loaded_region.append(self.bx_tool.connected_region)
             self.logger.info('Region {} loaded.'.format(self.bx_tool.connected_region))
