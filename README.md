@@ -1,17 +1,16 @@
-# Open Groupe Bluemix Billing Report
+# Open Groupe Bluemix Billing Tool
 
-A [Flask](https://github.com/pallets/flask) web application for billing report of Open Groupe's Bluemix platform.
+A web application for [billing report of Open Groupe's bluemix services and applications](https://open-bluemix-dashboard.eu-gb.mybluemix.net/)
+.
 
-The application itself is run on Bluemix: [OPEN Bluemix Billing Report](https://open-bluemix-dashboard.eu-gb.mybluemix.net/)
+This repository is mainly using for continious integration(CI), every commit will kick off a new build task and re-deploy it on bluemix.
 
-This repository is using for Continious Integration, every update will trigger a new build and deploy cycle in Bluemix Platform.
-
-## Run & test application locally
-
-Run `run.py` with a specified `port` and an optional flag `dev`, ex:
+## Run application
 ```python
-python run.py port [dev]
+python run.py {port} {flag}
 ```
-By default, the web application exposes on all the interfaces of the machine: `0.0.0.0:{port}`
+`port`: the port on which the application runs, by default it exposes on all the interfaces: `0.0.0.0:{port}`
 
-The `dev` flag means that we provide Bluemix account authentication information locally in `bx_report/resource/ENV_VARIABLE`. In production environment, all authentication informations are provided by system environment varaibles.
+`flag`: 
+* `dev`: providing bluemix account authentication information locally in `bx_report/resource/ENV_VARIABLE`. 
+* `prod`: all authentication informations are provided by system environment varaibles.
