@@ -59,17 +59,12 @@ class BXTool(object):
         self.logger.info('cf connected to region {}'.format(region))
 
     def get_orgs_list_all(self):
-        if self.all_orgs is None:
-            self.logger.info('start loading all organizations from cf...')
-            organizations = []
-            self.CFLogin('au')
-            organizations.extend(self.__get_orgs_list_current_region())
-            self.CFLogin('us')
-            organizations.extend(self.__get_orgs_list_current_region())
-            self.CFLogin('uk')
-            organizations.extend(self.__get_orgs_list_current_region())
-            self.all_orgs = list(set(organizations))
-            self.logger.info('all organizations got: ' + str(self.all_orgs))
+        self.logger.info('start loading all organizations from cf...')
+        for region in ['au', 'us', 'uk', 'de']:
+            self.CFLogin(region)
+            self.all_orgs.extend(self.__get_orgs_list_current_region())
+        self.all_orgs = list(set(self.all_orgs))
+        self.logger.info('all organizations got: ' + str(self.all_orgs))
         return self.all_orgs
 
     def __get_orgs_list_current_region(self):

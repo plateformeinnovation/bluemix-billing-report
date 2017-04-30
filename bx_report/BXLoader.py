@@ -51,7 +51,7 @@ class BXLoader(DBConnection, InterfaceBillingMod):
         try:
             self._create_billing_table()
             self._create_auth_table()
-            self.__insert_admin()
+            self.__insert_update_admin()
             self._cleaning()
             self._disconnect()
         except:
@@ -61,6 +61,7 @@ class BXLoader(DBConnection, InterfaceBillingMod):
 
     def load_all_region(self, beginning_date):
         self._connect()
+        self.__insert_update_admin()
         self.logger.info('start loading billing information with bx from {}.'
                          .format(Utilsdate.stringnize_date(beginning_date)))
         self.bx_tool.CFLogin('uk')
@@ -126,27 +127,30 @@ class BXLoader(DBConnection, InterfaceBillingMod):
         self.conn.commit()
         self.logger.debug('Table {}.{} created.'.format(self.schema, self.auth_table))
 
-    def __insert_admin(self):
+    def __insert_update_admin(self):
+        '''
+        insert or update admin user with newest organization list
+        :return:
+        '''
         self._insert_user(bx_login, bx_pw, True, self.bx_tool.get_orgs_list_all())
-        self.logger.debug('User admin added.')
+        self.logger.debug('Admin user added.')
 
     def _insert_user(self, user, password, su, orgs):
-        su = 'true' if su else 'false'
         orgs_str = str()
         for org in orgs:
             orgs_str += '"' + org + '",'
         orgs_str = '{' + orgs_str[:-1] + '}'
-        if su == 'true':
+        if su:
             INSERT_STATEMENT = '''
                 INSERT INTO {schema}.{table} (login, password, su, orgs)
-                SELECT '{login}', '{password}', '{su}', orgs
+                SELECT '{login}', '{password}', '{su}', '{orgs}'
                 FROM {schema}.{table}
-                WHERE login='admin'
+                WHERE login='{login}'
                 ON CONFLICT (login) DO UPDATE SET
                 login=EXCLUDED.login, password=EXCLUDED.password,
                 su=EXCLUDED.su, orgs=EXCLUDED.orgs;
                 '''.format(schema=self.schema, table=self.auth_table, login=user,
-                           password=password, su=su, orgs=orgs_str)
+                           password=password, su='true', orgs=orgs_str)
         else:
             INSERT_STATEMENT = '''
                 INSERT INTO {schema}.{table} (login, password, su, orgs)
@@ -154,7 +158,7 @@ class BXLoader(DBConnection, InterfaceBillingMod):
                 WHERE NOT EXISTS (
                     SELECT * FROM {schema}.{table} WHERE login='{login}' );
                     '''.format(schema=self.schema, table=self.auth_table,
-                               login=user, password=password, su=su, orgs=orgs_str)
+                               login=user, password=password, su='false', orgs=orgs_str)
         self.cursor.execute(INSERT_STATEMENT)
         self.conn.commit()
 
