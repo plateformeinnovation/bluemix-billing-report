@@ -2,7 +2,7 @@ import os
 import re
 
 
-def retrieve_VCAP(VCAP):
+def retrieve_vcap(VCAP):
     VCAP_VALUE = os.environ[VCAP]
     INFO = re.split(r'://|:|@|/', VCAP_VALUE)
     DBUser = INFO[1]

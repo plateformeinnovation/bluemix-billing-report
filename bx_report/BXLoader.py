@@ -52,6 +52,7 @@ class BXLoader(DBConnection, InterfaceBillingMod):
             self._create_billing_table()
             self._create_auth_table()
             self.__insert_admin()
+            self._cleaning()
             self._disconnect()
         except:
             print >> sys.stderr, "BXLoader init error."
@@ -60,7 +61,7 @@ class BXLoader(DBConnection, InterfaceBillingMod):
 
     def load_all_region(self, beginning_date):
         self._connect()
-        self.logger.info('start loading billing information from bx from {}.'
+        self.logger.info('start loading billing information with bx from {}.'
                          .format(Utilsdate.stringnize_date(beginning_date)))
         self.bx_tool.CFLogin('uk')
         self.__load_current_region(beginning_date)
@@ -192,4 +193,11 @@ class BXLoader(DBConnection, InterfaceBillingMod):
             """ % (self.schema, self.billing_table,
                    region, org, space, date, applications, containers, services)
         self.cursor.execute(INSERT_STATEMENT)
+        self.conn.commit()
+
+    def _cleaning(self):
+        CLEAN_STATEMENT = """
+        delete from billing where space like '%-%-%-%-%'
+        """
+        self.cursor.execute(CLEAN_STATEMENT)
         self.conn.commit()

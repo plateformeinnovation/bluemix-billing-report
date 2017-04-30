@@ -1,13 +1,11 @@
 # coding:utf-8
 
-import ctypes
 import logging
 import multiprocessing
 import os
 import sys
 
 import flask
-
 
 logging.basicConfig(level=logging.INFO, filename='bx_report.log', format='%(asctime)s %(message)s')
 werkzeug_logger = logging.getLogger('werkzeug')
@@ -17,29 +15,29 @@ ENV_BX_LOGIN = 'BX_LOGIN'
 ENV_BX_PW = 'BX_PASSWORD'
 ENV_BX_SLEEP = 'BX_SLEEP'
 VCAP = 'VCAP_SERVICES_COMPOSE_FOR_POSTGRESQL_0_CREDENTIALS_URI'
+FILE_LOGIN = 'bx_report/resource/ENV_VARIABLE'
+FILE_TEST_LOGIN = '../../bx_report/resource/ENV_VARIABLE'
 
-DEV = False
-
-if len(sys.argv) > 1:
-    PORT = int(sys.argv[1])
-
-if len(sys.argv) > 2 and sys.argv[2] == 'dev':
-    DEV = True
-    logging.basicConfig(level=logging.DEBUG)
-
-if len(sys.argv) > 3 or len(sys.argv) == 1:
-    print sys.stderr, 'run.py port [dev]'
+if len(sys.argv) != 3:
+    print sys.stderr, 'run.py port flag'
     sys.exit(1)
 
-if DEV:
-    with open('bx_report/resource/ENV_VARIABLE', 'r') as f:
-        bx_login = f.readline().strip()
-        bx_pw = f.readline().strip()
-        sleep_time = float(f.readline().strip())
-else:
+PORT = int(sys.argv[1])
+FLAG = sys.argv[2]
+
+if FLAG != 'prod':
+    logging.basicConfig(level=logging.DEBUG)
+
+if FLAG == 'prod':
     bx_login = os.environ[ENV_BX_LOGIN]
     bx_pw = os.environ[ENV_BX_PW]
     sleep_time = float(os.environ[ENV_BX_SLEEP])
+else:
+    file_login = FILE_LOGIN if os.path.exists(FILE_LOGIN) else FILE_TEST_LOGIN
+    with open(file_login) as f:
+        bx_login = f.readline().strip()
+        bx_pw = f.readline().strip()
+        sleep_time = float(f.readline().strip())
 
 # create a flask app
 app = flask.Flask(__name__)
@@ -61,7 +59,6 @@ lock = multiprocessing.Lock()
 #
 # bx_report has already been registered in previous run.py file
 from bx_report.flask_user.user import login_manager
-
 
 login_manager.init_app(app)
 

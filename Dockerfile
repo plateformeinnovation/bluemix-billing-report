@@ -24,4 +24,4 @@ RUN pip install -r requirements.txt
 RUN chmod +x run.py
 
 # default docker execution command
-CMD ["./run.py","80"]
+CMD ["./run.py","80", "prod"]
