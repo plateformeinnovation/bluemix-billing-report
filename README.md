@@ -3,9 +3,10 @@
 A web application for [billing report of Open Groupe's bluemix services and applications](https://open-bluemix-dashboard.eu-gb.mybluemix.net/)
 .
 
-This repository is mainly using for continious integration(CI), every commit will kick off a new build task and re-deploy it on bluemix.
+This repository is mainly used for continious integration(CI), each commit will kick off a new build and re-deploy it on bluemix.
 
 ## Run application
+To run application locally, you need to install cloud foundry cf cli, bluemix cli, and also all the python dependencies library, then configure your PostgreSQL server properly to store collected billing information and start application by:
 ```python
 python run.py {port} {flag}
 ```
