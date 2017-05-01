@@ -1,101 +1,66 @@
-import sys
 import json
 import logging
-import os
 import subprocess
 
 from singleton import singleton
 
+API_UK = "https://api.eu-gb.bluemix.net"
+API_US = "https://api.ng.bluemix.net"
+API_AU = "https://api.au-syd.bluemix.net"
+API_DE = "https://api.eu-de.bluemix.net"
+
+API_LIST = [API_DE, API_US, API_UK, API_AU]
+
 
 @singleton
-class BXTool(object):
-    def __init__(self, bx_login, bx_pw,
-                 api_uk="https://api.eu-gb.bluemix.net",
-                 api_us="https://api.ng.bluemix.net",
-                 api_au="https://api.au-syd.bluemix.net",
-                 api_de="https://api.eu-de.bluemix.net"):
+class BluemixCli(object):
+    def __init__(self, bx_login, bx_pw):
 
         self.logger = logging.getLogger(__name__)
 
         self.bx_login = bx_login
         self.bx_password = bx_pw
 
-        self.api_uk = api_uk
-        self.api_us = api_us
-        self.api_au = api_au
-        self.api_de = api_de
-
         self.connected_region = None
 
-        self.all_orgs = None
-        self.get_orgs_list_all()
-
-    def CFLogin(self, region, organization="moodpeek", space="dev"):
-        if region == self.connected_region:
-            self.logger.info('already connected to region {}'.format(region))
-            return
-        if region == "uk":
-            region = self.api_uk
-            self.connected_region = "uk"
-        elif region == "us":
-            region = self.api_us
-            self.connected_region = "us"
-        elif region == "au":
-            region = self.api_au
-            self.connected_region = "au"
-        elif region == 'de':
-            region = self.api_de
-            self.connected_region = 'de'
+    def cf_login(self, region_api, organization="moodpeek", space="dev"):
+        self.connected_region = region_api
+        if region_api == API_DE:
             organization = 'CDO'
-        else:
-            raise ValueError("api should be: uk, us, or au.")
-            sys.exit(1)
         command_cf = 'cf login -a {} -u {} -p {} -o {} -s {}'.format(
-            region, self.bx_login, self.bx_password, organization, space)
-        process = subprocess.Popen(command_cf, shell=True, stdout=subprocess.PIPE)
-        process.communicate()
-        if process.poll() != 0:
-            print sys.stderr, 'cf connect error.'
-        self.logger.info('cf connected to region {}'.format(region))
+            region_api, self.bx_login, self.bx_password, organization, space)
+        if self.__subprocess(command_cf)[0] != 0:
+            raise IOError('cf connection error.')
+        self.logger.info('cf connected to region {}'.format(region_api))
 
     def get_orgs_list_all(self):
+        all_orgs = []
         self.logger.info('start loading all organizations from cf...')
-        for region in ['au', 'us', 'uk', 'de']:
-            self.CFLogin(region)
-            self.all_orgs.extend(self.__get_orgs_list_current_region())
-        self.all_orgs = list(set(self.all_orgs))
-        self.logger.info('all organizations got: ' + str(self.all_orgs))
-        return self.all_orgs
+        for region_api in API_LIST:
+            self.cf_login(region_api)
+            all_orgs.extend(self.__get_orgs_list_current_region())
+        all_orgs = list(set(all_orgs))
+        self.logger.info('all organizations got: ' + str(all_orgs))
+        return all_orgs
 
     def __get_orgs_list_current_region(self):
 
         command_summary = "cf orgs"
-        childProcess = subprocess.Popen(command_summary, shell=True, stdout=subprocess.PIPE)
-        out, err = childProcess.communicate()
-        returnCode = childProcess.poll()
-        while returnCode != 0:
-            childProcess = subprocess.Popen(command_summary, shell=True, stdout=subprocess.PIPE)
-            out, err = childProcess.communicate()
-            returnCode = childProcess.poll()
+        return_code, out = self.__subprocess(command_summary)
+        while return_code != 0:
+            return_code, out = self.__subprocess(command_summary)
         org_list = out.split('\n')[3:-1]
-
         return org_list
 
     def get_orgs_list_by_date(self, report_date):
 
         command_summary = "bx bss orgs-usage-summary -d %s --json" % (report_date)
-        childProcess = subprocess.Popen(command_summary, shell=True, stdout=subprocess.PIPE)
-        out, err = childProcess.communicate()
-        returnCode = childProcess.poll()
-        if returnCode == 0:
-            json_str = out
-        while returnCode != 0:
+        return_code, out = self.__subprocess(command_summary)
+        while return_code != 0:
             self.logger.debug('Getting organization list again for {}'.format(report_date))
-            childProcess = subprocess.Popen(command_summary, shell=True, stdout=subprocess.PIPE)
-            out, err = childProcess.communicate()
-            returnCode = childProcess.poll()
-            if returnCode == 0:
-                json_str = out
+            return_code, out = self.__subprocess(command_summary)
+        json_str = out
+
         json_data = json.loads(json_str)
         org_list = list()
         if json_data["organizations"]:
@@ -107,28 +72,23 @@ class BXTool(object):
 
     def retrieve_records(self, org, report_date):
         command_org = "bluemix bss org-usage %s --json -d %s" % (org, report_date)
-        childProcess = subprocess.Popen(command_org, shell=True, stdout=subprocess.PIPE)
-        out, err = childProcess.communicate()
-        returnCode = childProcess.poll()
-        count = 0
-        if returnCode == 0:
+
+        return_code, out = self.__subprocess(command_org)
+        cnt = 0
+        while return_code != 0 and cnt < 5:
+            cnt += 1
+            return_code, out = self.__subprocess(command_org)
+        if return_code != 0:
+            self.logger.debug('{} {}: Failed - connection error'.format(org, report_date))
+            return None
+        else:
             json_str = out
-        while returnCode != 0:
-            if count > 4:
-                self.logger.debug('{} {}: Failed - connection error'.format(org, report_date))
-                return None
-            childProcess = subprocess.Popen(command_org, shell=True, stdout=subprocess.PIPE)
-            out, err = childProcess.communicate()
-            returnCode = childProcess.poll()
-            if returnCode == 0:
-                json_str = out
-            count += 1
+
         json_data = json.loads(json_str)
         spaces_list_raw = json_data[0]["billable_usage"]["spaces"]
         if not spaces_list_raw:
             self.logger.debug('{} {}: None.'.format(org, report_date))
             return None
-        self.logger.debug('{} {}: Loaded.'.format(org, report_date))
         region = json_data[0]["region"]
         space_bill_list = list()
         for space in spaces_list_raw:
@@ -140,6 +100,7 @@ class BXTool(object):
             space_bill["containers"] = self.__sum_container(space["containers"])
             space_bill["services"] = self.__sum_service(space["services"])
             space_bill_list.append(space_bill)
+        self.logger.debug('{} {}: Loaded.'.format(org, report_date))
         return space_bill_list
 
     def __sum_application(self, list_application):
@@ -191,3 +152,9 @@ class BXTool(object):
             for usage in element["usage"]:
                 sum += usage[aspect]
         return sum
+
+    def __subprocess(self, command):
+        child_process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
+        out, err = child_process.communicate()
+        return_code = child_process.poll()
+        return (return_code, out)

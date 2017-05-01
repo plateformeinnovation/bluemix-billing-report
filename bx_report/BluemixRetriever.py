@@ -4,11 +4,11 @@ from datetime import date, datetime
 
 from bx_report import bx_login, bx_pw
 from bx_report.database import DBConnection, InterfaceBillingMod
-from bx_report.utils.BXTool import BXTool
+from bx_report.utils.BluemixCli import BluemixCli, API_LIST
 from bx_report.utils.Utilsdate import Utilsdate
 
 
-class BXLoader(DBConnection, InterfaceBillingMod):
+class BluemixRetriever(DBConnection, InterfaceBillingMod):
     # bound with class, like static variable in Java
     BEGINNING_DATE = date(2016, 1, 1)
 
@@ -17,13 +17,13 @@ class BXLoader(DBConnection, InterfaceBillingMod):
                  auth_table='authentication', beginning_date=None):
 
         # call correspond __init__ method by mro (Method Resolution Order)
-        super(BXLoader, self).__init__(host, port, user, password, dbname,
-                                       schema, billing_table, auth_table)
+        super(BluemixRetriever, self).__init__(host, port, user, password, dbname,
+                                               schema, billing_table, auth_table)
 
         self.beginning_date = beginning_date if beginning_date \
-            else BXLoader.BEGINNING_DATE
+            else BluemixRetriever.BEGINNING_DATE
 
-        self.loaded_region = list()
+        self.region_loaded = list()
 
         self.CREATE_BILLING_TABLE_STATEMENT = """
             CREATE TABLE IF NOT EXISTS %s.%s(
@@ -46,7 +46,7 @@ class BXLoader(DBConnection, InterfaceBillingMod):
                 CONSTRAINT authentication_pkey PRIMARY KEY (login)
             );''' % (self.schema, self.auth_table)
 
-        self.bx_tool = BXTool(bx_login, bx_pw)
+        self.bx_cli = BluemixCli(bx_login, bx_pw)
 
         try:
             self._create_billing_table()
@@ -64,18 +64,13 @@ class BXLoader(DBConnection, InterfaceBillingMod):
         self.__insert_update_admin()
         self.logger.info('start loading billing information with bx from {}.'
                          .format(Utilsdate.stringnize_date(beginning_date)))
-        self.bx_tool.CFLogin('uk')
-        self.__load_current_region(beginning_date)
-        self.bx_tool.CFLogin('us')
-        self.__load_current_region(beginning_date)
-        self.bx_tool.CFLogin('au')
-        self.__load_current_region(beginning_date)
-        self.bx_tool.CFLogin('de')
-        self.__load_current_region(beginning_date)
+        for region_api in API_LIST:
+            self.bx_cli.cf_login(region_api)
+            self.__load_current_region(beginning_date)
 
         self.conn.commit()
         self.logger.info('loading finished.')
-        self.loaded_region = []
+        self.region_loaded = []
         self._disconnect()
 
         return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -87,35 +82,36 @@ class BXLoader(DBConnection, InterfaceBillingMod):
         :param beginning_date: starting date
         :return:
         '''
-        if (self.bx_tool.connected_region and
-                (self.bx_tool.connected_region not in self.loaded_region)):
+        if (self.bx_cli.connected_region and
+                (self.bx_cli.connected_region not in self.region_loaded)):
             self.logger.info('loading {} from {}.'
-                             .format(self.bx_tool.connected_region,
+                             .format(self.bx_cli.connected_region,
                                      Utilsdate.stringnize_date(beginning_date)))
 
             report_date = date.today()
 
             while (report_date >= beginning_date):
                 report_date_str = Utilsdate.stringnize_date(report_date)
-                org_list = self.bx_tool.get_orgs_list_by_date(report_date_str)
+                org_list = self.bx_cli.get_orgs_list_by_date(report_date_str)
                 for org in org_list:
-                    bill_records = self.bx_tool.retrieve_records(org, report_date_str)
-                    for record in bill_records:
-                        if self._check_existence(record["region"], org, record["space"], record["date"]):
-                            self._update_record(record["region"], org, record["space"], record["date"],
-                                                json.dumps(record["applications"]),
-                                                json.dumps(record["containers"]),
-                                                json.dumps(record["services"]))
-                        else:
-                            self._insert_record(record["region"], org, record["space"], record["date"],
-                                                json.dumps(record["applications"]),
-                                                json.dumps(record["containers"]),
-                                                json.dumps(record["services"]))
+                    bill_records = self.bx_cli.retrieve_records(org, report_date_str)
+                    if bill_records:
+                        for record in bill_records:
+                            if self._check_existence(record["region"], org, record["space"], record["date"]):
+                                self._update_record(record["region"], org, record["space"], record["date"],
+                                                    json.dumps(record["applications"]),
+                                                    json.dumps(record["containers"]),
+                                                    json.dumps(record["services"]))
+                            else:
+                                self._insert_record(record["region"], org, record["space"], record["date"],
+                                                    json.dumps(record["applications"]),
+                                                    json.dumps(record["containers"]),
+                                                    json.dumps(record["services"]))
                 report_date = Utilsdate.previous_month_date(report_date)
-            self.loaded_region.append(self.bx_tool.connected_region)
-            self.logger.info('Region {} loaded.'.format(self.bx_tool.connected_region))
+            self.region_loaded.append(self.bx_cli.connected_region)
+            self.logger.info('Region {} loaded.'.format(self.bx_cli.connected_region))
         else:
-            self.logger.info('Region {} already loaded, loading skipped.'.format(self.bx_tool.connected_region))
+            self.logger.info('Region {} already loaded, loading skipped.'.format(self.bx_cli.connected_region))
 
     def _create_billing_table(self):
         self.cursor.execute(self.CREATE_BILLING_TABLE_STATEMENT)
@@ -132,7 +128,7 @@ class BXLoader(DBConnection, InterfaceBillingMod):
         insert or update admin user with newest organization list
         :return:
         '''
-        self._insert_user(bx_login, bx_pw, True, self.bx_tool.get_orgs_list_all())
+        self._insert_user(bx_login, bx_pw, True, self.bx_cli.get_orgs_list_all())
         self.logger.debug('Admin user added.')
 
     def _insert_user(self, user, password, su, orgs):

@@ -7,8 +7,7 @@ import psycopg2
 class DBConnection(object):
 
     def __init__(self, host, port, user, password, dbname,
-                 schema='public', billing_table='billing',
-                 auth_table='authentication'):
+                 schema, billing_table, auth_table):
         self.logger = logging.getLogger(__name__)
 
         self.schema = schema

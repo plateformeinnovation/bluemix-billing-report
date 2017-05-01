@@ -3,11 +3,20 @@ import psycopg2
 from bx_report.database import DBConnection, InterfaceAuth, InterfaceBilling
 
 
-class BluemixClient(DBConnection, InterfaceAuth, InterfaceBilling):
+class DBLoader(DBConnection, InterfaceAuth, InterfaceBilling):
     '''
     Python inherits constructor(__init__) and destructor(__del__) directly !!!
-    Here we overwrite __init__
     '''
+
+    def __rectify_region_name(self, region):
+        if region == "uk":
+            return "eu-gb"
+        if region == "us":
+            return "us-south"
+        if region == "au":
+            return "au-syd"
+        if region == 'de':
+            return 'eu-de'
 
     def __get_records(self, region, org, *args):
         '''
@@ -20,12 +29,7 @@ class BluemixClient(DBConnection, InterfaceAuth, InterfaceBilling):
         if len(args) > 2 or len(args) == 0:
             raise ValueError("arguments number error.")
 
-        if region == "uk":
-            region = "eu-gb"
-        if region == "us":
-            region = "us-south"
-        if region == "au":
-            region = "au-syd"
+        region = self.__rectify_region_name(region)
 
         if "history" in args:
             if len(args) == 1:
@@ -63,12 +67,7 @@ class BluemixClient(DBConnection, InterfaceAuth, InterfaceBilling):
         ('_openup',), ('devops',), ('dev',)]
         '''
 
-        if region == "uk":
-            region = "eu-gb"
-        if region == "us":
-            region = "us-south"
-        if region == "au":
-            region = "au-syd"
+        region = self.__rectify_region_name(region)
 
         LIST_SPACES = self._select(
             'space', self.schema, self.billing_table, distinct=True,

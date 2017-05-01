@@ -2,26 +2,28 @@ import logging
 
 from flask_table import Col, create_table
 
-from bx_report.BXClient import BluemixClient
+from bx_report.DBLoader import DBLoader
 from bx_report.utils.singleton import singleton
 
 
 @singleton
-class BXTable(object):
+class TableFactory(object):
     def __init__(self, host, port, dbname, user, password):
 
         self.logger = logging.getLogger(__name__)
 
         self.logger.debug('initializing BluemixTable.')
 
-        self.client = BluemixClient(
+        self.regions = ['uk', 'us', 'au', 'de']
+
+        self.client = DBLoader(
             host, port, user, password, dbname, 'public',
             'billing', 'authentication')
 
     def table_detail(self, organization, date):
         row_list = list()
         sum_cost = 0
-        for region in ['uk', 'us', 'au']:
+        for region in self.regions:
             rows_for_region = self.__detail_rows(region, organization, date)
             for row in rows_for_region:
                 sum_cost += row['cost']
@@ -58,7 +60,7 @@ class BXTable(object):
     def table_space(self, organization, date_str):
         row_list = list()
         sum_cost = 0
-        for region in ['uk', 'us', 'au']:
+        for region in self.regions:
             rows_for_region = self.__space_rows(region, organization, date_str)
             for row in rows_for_region:
                 sum_cost += row['cost']
@@ -84,7 +86,7 @@ class BXTable(object):
     def table_category(self, organization, date_str):
         row_list = list()
         sum_cost = 0
-        for region in ['uk', 'us', 'au']:
+        for region in self.regions:
             rows_for_region = self.__category_rows(region, organization, date_str)
             for row in rows_for_region:
                 sum_cost += row['cost']
