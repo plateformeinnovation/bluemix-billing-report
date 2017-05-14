@@ -14,7 +14,7 @@ assert sys.modules.has_key('bx_report.flask_user.user')
 # and VCAP has been executed. we can import it directly
 # with not re-executing the whole module
 from bx_report import VCAP
-from bx_report.DIfactory.get_table import get_table
+from bx_report.factory.get_table_render import get_table_render
 
 
 # User class inherits from flask_login.UserMixin
@@ -34,7 +34,7 @@ login_manager.login_view = 'login'
 # reload user when necessary
 @login_manager.user_loader
 def user_loader(email):
-    su = get_table(VCAP).client._verify_su(email)
+    su = get_table_render(VCAP).client._verify_su(email)
     try:
         su = su[0][0]
     except IndexError:

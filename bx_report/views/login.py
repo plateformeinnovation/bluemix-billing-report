@@ -5,8 +5,8 @@ from email.mime.text import MIMEText
 import flask
 import flask_login
 
-from bx_report import app, VCAP
-from bx_report.DIfactory.get_table import get_table
+from bx_report import app, VCAP, mail_sender, mail_sender_pw
+from bx_report.factory.get_table_render import get_table_render
 from bx_report.flask_user.user import user_loader
 from bx_report.utils.Utilsdate import Utilsdate
 from bx_report.views import UserSession
@@ -23,7 +23,7 @@ def login():
 
         email = flask.request.form['email']
         password = flask.request.form['pw']
-        auth_info = get_table(VCAP).client._authenticate(email, password)
+        auth_info = get_table_render(VCAP).client._authenticate(email, password)
 
         if auth_info:  # successfully authenticated
             UserSession.set_current_date(Utilsdate.stringnize_date(date.today()))
@@ -54,18 +54,16 @@ def forgotten():
         return flask.render_template('forgotten.html')
 
     if flask.request.method == 'POST':
-        sender = 'openbluemix@gmail.com'
-        sender_pw = 'cba654321'
         receiver = ['frederic.duport@open-groupe.com']
         user = flask.request.form['email'].strip()
         msg = MIMEText('Please reset password for {}.'.format(user))
         msg['Subject'] = 'OPEN Bluemix reporting platform - Password reset demand.'
-        msg['From'] = sender
+        msg['From'] = mail_sender
         msg['To'] = receiver[0]
         server = smtplib.SMTP('smtp.gmail.com:587')
         server.ehlo()
         server.starttls()
-        server.login(sender, sender_pw)
-        server.sendmail(sender, receiver, msg.as_string())
+        server.login(mail_sender, mail_sender_pw)
+        server.sendmail(mail_sender, receiver, msg.as_string())
         server.quit()
         return flask.redirect(flask.url_for('login'))

@@ -4,7 +4,7 @@ import flask
 import flask_login
 
 from bx_report import app, VCAP, last_update_time, lock
-from bx_report.DIfactory.get_table import get_table
+from bx_report.factory.get_table_render import get_table_render
 from bx_report.utils.Utilsdate import Utilsdate
 from bx_report.views import UserSession
 
@@ -14,8 +14,8 @@ def __report_summary(su, date_str):
     tables_space = '\n<h2 class="round">Consumption by organization/space</h2>\n'
     tables_category = '\n<h2 class="round">Consumption by organization/category</h2>\n'
     for organization in UserSession.get_organizations():
-        table_space = get_table(VCAP).table_space(organization, date_str)
-        table_category = get_table(VCAP).table_category(organization, date_str)
+        table_space = get_table_render(VCAP).table_space(organization, date_str)
+        table_category = get_table_render(VCAP).table_category(organization, date_str)
         if table_space:
             cost_list = re.findall(r'[0-9]+.[0-9]+', str(table_space))
             cost_sum += float(cost_list[len(cost_list) - 1])

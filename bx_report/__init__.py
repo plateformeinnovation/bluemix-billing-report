@@ -14,9 +14,11 @@ werkzeug_logger.setLevel(logging.ERROR)
 ENV_BX_LOGIN = 'BX_LOGIN'
 ENV_BX_PW = 'BX_PASSWORD'
 ENV_BX_SLEEP = 'BX_SLEEP'
+ENV_MAIL_SENDER = 'MAIL_SENDER'
+ENV_MAIL_SENDER_PW = 'MAIL_SENDER_PW'
 VCAP = 'VCAP_SERVICES_COMPOSE_FOR_POSTGRESQL_0_CREDENTIALS_URI'
 FILE_LOGIN = 'bx_report/resource/ENV_VARIABLE'
-FILE_TEST_LOGIN = '../../bx_report/resource/ENV_VARIABLE'
+FILE_TEST_LOGIN = 'resource/ENV_VARIABLE'
 
 if len(sys.argv) != 3:
     print sys.stderr, 'run.py port flag'
@@ -32,12 +34,17 @@ if FLAG == 'prod':
     bx_login = os.environ[ENV_BX_LOGIN]
     bx_pw = os.environ[ENV_BX_PW]
     sleep_time = float(os.environ[ENV_BX_SLEEP])
+    mail_sender = os.environ[ENV_MAIL_SENDER]
+    mail_sender_pw = os.environ[ENV_MAIL_SENDER_PW]
 else:
     file_login = FILE_LOGIN if os.path.exists(FILE_LOGIN) else FILE_TEST_LOGIN
     with open(file_login) as f:
         bx_login = f.readline().strip()
         bx_pw = f.readline().strip()
         sleep_time = float(f.readline().strip())
+        mail_sender = f.readline().strip()
+        mail_sender_pw = f.readline().strip()
+
 
 # create a flask app
 app = flask.Flask(__name__)

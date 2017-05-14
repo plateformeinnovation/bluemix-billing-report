@@ -2,12 +2,12 @@ import logging
 
 from flask_table import Col, create_table
 
-from bx_report.DBLoader import DBLoader
+from bx_report.db.DBRetriever import DBRetriever
 from bx_report.utils.singleton import singleton
 
 
 @singleton
-class TableFactory(object):
+class TableRender(object):
     def __init__(self, host, port, dbname, user, password):
 
         self.logger = logging.getLogger(__name__)
@@ -16,7 +16,7 @@ class TableFactory(object):
 
         self.regions = ['uk', 'us', 'au', 'de']
 
-        self.client = DBLoader(
+        self.client = DBRetriever(
             host, port, user, password, dbname, 'public',
             'billing', 'authentication')
 

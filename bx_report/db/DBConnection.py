@@ -23,17 +23,17 @@ class DBConnection(object):
         try:
             self._connect()
         except:
-            print >> sys.stderr, 'DIfactory connection error.'
+            print >> sys.stderr, 'factory connection error.'
 
     def _connect(self):
         self.conn = psycopg2.connect(
             host=self.host, port=self.port, database=self.dbname, user=self.user, password=self.password)
         self.cursor = self.conn.cursor()
-        self.logger.debug('Postgres database {} connected.'.format(self.dbname))
+        self.logger.debug('Postgres db {} connected.'.format(self.dbname))
 
     def _disconnect(self):
         self.conn.close()
-        self.logger.debug('Postgres database {} disconnected.')
+        self.logger.debug('Postgres db {} disconnected.')
 
     def __del__(self):
         self._disconnect()

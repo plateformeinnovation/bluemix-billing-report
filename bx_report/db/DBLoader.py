@@ -3,12 +3,12 @@ import sys
 from datetime import date, datetime
 
 from bx_report import bx_login, bx_pw
-from bx_report.database import DBConnection, InterfaceBillingMod
+from bx_report.db import DBConnection, InterfaceBillingMod
 from bx_report.utils.BluemixCli import BluemixCli, API_LIST
 from bx_report.utils.Utilsdate import Utilsdate
 
 
-class BluemixRetriever(DBConnection, InterfaceBillingMod):
+class DBLoader(DBConnection, InterfaceBillingMod):
     # bound with class, like static variable in Java
     BEGINNING_DATE = date(2016, 1, 1)
 
@@ -17,11 +17,11 @@ class BluemixRetriever(DBConnection, InterfaceBillingMod):
                  auth_table='authentication', beginning_date=None):
 
         # call correspond __init__ method by mro (Method Resolution Order)
-        super(BluemixRetriever, self).__init__(host, port, user, password, dbname,
-                                               schema, billing_table, auth_table)
+        super(DBLoader, self).__init__(host, port, user, password, dbname,
+                                       schema, billing_table, auth_table)
 
         self.beginning_date = beginning_date if beginning_date \
-            else BluemixRetriever.BEGINNING_DATE
+            else DBLoader.BEGINNING_DATE
 
         self.region_loaded = list()
 
@@ -52,7 +52,6 @@ class BluemixRetriever(DBConnection, InterfaceBillingMod):
             self._create_billing_table()
             self._create_auth_table()
             self.__insert_update_admin()
-            self._cleaning()
             self._disconnect()
         except:
             print >> sys.stderr, "BXLoader init error."
@@ -64,9 +63,12 @@ class BluemixRetriever(DBConnection, InterfaceBillingMod):
         self.__insert_update_admin()
         self.logger.info('start loading billing information with bx from {}.'
                          .format(Utilsdate.stringnize_date(beginning_date)))
+
         for region_api in API_LIST:
             self.bx_cli.cf_login(region_api)
             self.__load_current_region(beginning_date)
+
+        self._cleaning()
 
         self.conn.commit()
         self.logger.info('loading finished.')

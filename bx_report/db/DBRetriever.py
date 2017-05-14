@@ -1,9 +1,9 @@
 import psycopg2
 
-from bx_report.database import DBConnection, InterfaceAuth, InterfaceBilling
+from bx_report.db import DBConnection, InterfaceAuth, InterfaceBilling
 
 
-class DBLoader(DBConnection, InterfaceAuth, InterfaceBilling):
+class DBRetriever(DBConnection, InterfaceAuth, InterfaceBilling):
     '''
     Python inherits constructor(__init__) and destructor(__del__) directly !!!
     '''
@@ -20,7 +20,7 @@ class DBLoader(DBConnection, InterfaceAuth, InterfaceBilling):
 
     def __get_records(self, region, org, *args):
         '''
-        Get records in DIfactory for region, organization, [space], [date]
+        Get records in factory for region, organization, [space], [date]
         :param region:
         :param org:
         :param args:
@@ -100,7 +100,7 @@ class DBLoader(DBConnection, InterfaceAuth, InterfaceBilling):
             return sum
         else:
             if len(records) > 1:
-                raise Exception("DIfactory storage exception.")
+                raise Exception("factory storage exception.")
             for element in records[0]:
                 if isinstance(element, dict):
                     if "cost" in element:

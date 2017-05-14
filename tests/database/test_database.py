@@ -1,6 +1,6 @@
 import unittest
 
-import bx_report.database.DBConnection as db
+import bx_report.db.DBConnection as db
 import bx_report.utils.read_vcap as vcap
 
 class TestDatabase(unittest.TestCase):
