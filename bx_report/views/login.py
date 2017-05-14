@@ -5,7 +5,7 @@ from email.mime.text import MIMEText
 import flask
 import flask_login
 
-from bx_report import app, VCAP, mail_sender, mail_sender_pw
+from bx_report import app, VCAP, mail_sender, mail_sender_pw, bx_login
 from bx_report.factory.get_table_render import get_table_render
 from bx_report.flask_user.user import user_loader
 from bx_report.utils.Utilsdate import Utilsdate
@@ -54,7 +54,7 @@ def forgotten():
         return flask.render_template('forgotten.html')
 
     if flask.request.method == 'POST':
-        receiver = ['frederic.duport@open-groupe.com']
+        receiver = [bx_login]
         user = flask.request.form['email'].strip()
         msg = MIMEText('Please reset password for {}.'.format(user))
         msg['Subject'] = 'OPEN Bluemix reporting platform - Password reset demand.'
