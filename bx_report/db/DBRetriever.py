@@ -329,6 +329,8 @@ class DBRetriever(DBConnection, InterfaceAuth, InterfaceBilling):
             self._connect()
         except psycopg2.InterfaceError:
             self._connect()
+        except psycopg2.InternalError:
+            self.conn.rollback()
         return self.cursor.fetchone()
 
     def _verify_su(self, login):
