@@ -27,7 +27,7 @@ class BluemixCli(object):
         self.connected_region = region_api
         if region_api == API_DE:
             organization = 'CDO'
-        command_cf = 'cf login -a {} -u {} -p {} -o {} -s {}'.format(
+        command_cf = 'bx login -a {} -u {} -p {} -c 724c026606b28bc419bfe40e8ad2d05c -o {} -s {}'.format(
             region_api, self.bx_login, self.bx_password, organization, space)
         if self.__subprocess(command_cf)[0] != 0:
             raise IOError('cf connection error.')
@@ -45,7 +45,7 @@ class BluemixCli(object):
 
     def __get_orgs_list_current_region(self):
 
-        command_summary = "cf orgs"
+        command_summary = "bx cf orgs"
         return_code, out = self.__subprocess(command_summary)
         while return_code != 0:
             return_code, out = self.__subprocess(command_summary)
@@ -54,7 +54,7 @@ class BluemixCli(object):
 
     def get_orgs_list_by_date(self, report_date):
 
-        command_summary = "bx bss orgs-usage-summary -d %s --json" % (report_date)
+        command_summary = "bx billing orgs-usage-summary -d %s --json" % (report_date)
         return_code, out = self.__subprocess(command_summary)
         while return_code != 0:
             self.logger.debug('Getting organization list again for {}'.format(report_date))
@@ -71,7 +71,7 @@ class BluemixCli(object):
         return org_list
 
     def retrieve_records(self, org, report_date):
-        command_org = "bluemix bss org-usage %s --json -d %s" % (org, report_date)
+        command_org = "bx billing org-usage %s --json -d %s" % (org, report_date)
 
         return_code, out = self.__subprocess(command_org)
         cnt = 0
